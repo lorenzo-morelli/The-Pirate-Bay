@@ -1,5 +1,5 @@
 using namespace std;
-void Assignment14::createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
+void Main::createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
 
     //far
     vDef.push_back({{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}});  // vertex 0 - Position and Normal
@@ -56,7 +56,7 @@ void Assignment14::createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_
     vIdx.push_back(22); vIdx.push_back(21); vIdx.push_back(23);
 }
 
-void Assignment14::createFunctionMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
+void Main::createFunctionMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
     // The surface is defined by equation y = sin(x) * cos(z) with -3 <= x <= 3 and -3 <= z <= 3
     int res = 40;
     for (int i = 0; i < res; i++) {
@@ -129,7 +129,7 @@ void buildSide(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int n, in
     }
 }
 
-void Assignment14::createCylinderMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
+void Main::createCylinderMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
     // The procedure fills array vPos with the positions of the vertices and of the normal vectors of the mesh
     // The procedures also fill the array vIdx with the indices of the vertices of the triangles
     // The primitive built here is a cylinder, with radius 1, and height 2, centered in the origin.
