@@ -65,7 +65,7 @@ protected:
         windowHeight = 600;
         windowTitle = "Fantastico Progetto di Morello e Piaggi";
         windowResizable = GLFW_TRUE;
-        initialBackgroundColor = {0.0f, 0.015f, 0.03f, 1.0f};
+        initialBackgroundColor = {180.0f/255.0f, 255.0f/255.0f, 255.0/255.0f, 1.0f};
 
         // Descriptor pool sizes
         uniformBlocksInPool = 7;
@@ -107,7 +107,7 @@ protected:
         // Pipelines [Shader couples]
         // The last array, is a vector of pointer to the layouts of the sets that will
         // be used in this pipeline. The first element will be set 0, and so on..
-        P1.init(this, &VD, "shaders/BlinnVert.spv", "shaders/BlinnFrag.spv", {&DSL1});
+        P1.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSL1});
         P1.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL,
                                VK_CULL_MODE_NONE, false);
 

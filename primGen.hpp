@@ -1,16 +1,16 @@
 using namespace std;
 #include "PerlinNoise.hpp"
 void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int offset, float size, float gap, float x, float y,float z) {
-    
+
     float startX = x*(size+gap);
     float endX = x*(size+gap) + size;
 
     float startZ = z*(size+gap);
     float endZ = z*(size+gap) + size;
-    
+
     float startY = y - size/2;
     float endY = y + size/2 ;
-    
+
     //far
     vDef.push_back({{startX, startY, startZ}, {0.0f, 0.0f, -1.0f}});  // vertex 0 - Position and Normal
     vDef.push_back({{endX, startY, startZ}, {0.0f, 0.0f, -1.0f}});  // vertex 1 - Position and Normal
@@ -73,15 +73,14 @@ void Main::createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
 
     float size = 0.1f;
     int n = 500;
-    for(int i =0; i < n; i++){
-        for(int j =0; j < n; j++){
+    for (int i =0; i < n; i++){
+        for( int j =0; j < n; j++){
             int offset = (int)vDef.size();
             float noise = perlin.octave2D_01((i * 0.01), (j * 0.01), 4);
             createCubeMesh(vDef,vIdx, offset, size, 0.0f, (float)i,2.0f*noise,(float)j);
         }
     }
 }
-
 
 
 void Main::createFunctionMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
