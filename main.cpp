@@ -112,7 +112,7 @@ protected:
                                VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
-        createCubeMesh(M1.vertices, M1.indices);
+        createGrid(M1.vertices, M1.indices);
         M1.initMesh(this, &VD);
 
         createFunctionMesh(M2.vertices, M2.indices);
@@ -178,7 +178,15 @@ protected:
                 DS1.bind(commandBuffer, P1, currentImage);
 
                 vkCmdDrawIndexed(commandBuffer,
+                                 static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
+
+                P1.bind(commandBuffer);
+                M1.bind(commandBuffer);
+                DS1.bind(commandBuffer, P1, currentImage);
+
+                vkCmdDrawIndexed(commandBuffer,
                                  static_cast<uint32_t>(M2.indices.size()), 1, 0, 0, 0);
+
                 break;
             case 2:
                 P1.bind(commandBuffer);
@@ -332,7 +340,7 @@ protected:
         ViewPrj = Prj * View;
     }
 
-    void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
+    void createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
     void createFunctionMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
     void createCylinderMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
 };
