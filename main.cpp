@@ -2,6 +2,9 @@
 
 #include "Starter.hpp"
 #include "TextMaker.hpp"
+#include "PerlinNoise.hpp"
+
+using namespace glm;
 
 
 std::vector<SingleText> demoText = {
@@ -205,22 +208,21 @@ protected:
     // Very likely this will be where you will be writing the logic of your application.
     void updateUniformBuffer(uint32_t currentImage) {
         static bool debounce = false;
-        static int curDebounce = 0;
-//std::cout << xpos << " " << ypos << " " << m_dx << " " << m_dy << "\n";
+        static int button = 0;
 
         if(glfwGetKey(window, GLFW_KEY_SPACE)) {
             if(!debounce) {
                 debounce = true;
-                curDebounce = GLFW_KEY_SPACE;
+                button = GLFW_KEY_SPACE;
                 currScene = (currScene+1) % 3;
                 std::cout << "Scene : " << currScene << "\n";
 //				Pos = glm::vec3(0,0,currScene == 0 ? 10 : 8);
                 RebuildPipeline();
             }
         } else {
-            if((curDebounce == GLFW_KEY_SPACE) && debounce) {
+            if((button == GLFW_KEY_SPACE) && debounce) {
                 debounce = false;
-                curDebounce = 0;
+                button = 0;
             }
         }
 
@@ -229,22 +231,28 @@ protected:
         if(glfwGetKey(window, GLFW_KEY_N)) {
             if(!debounce) {
                 debounce = true;
-                curDebounce = GLFW_KEY_N;
+                button = GLFW_KEY_N;
                 showNormal = !showNormal;
             }
         } else {
-            if((curDebounce == GLFW_KEY_N) && debounce) {
+            if((button == GLFW_KEY_N) && debounce) {
                 debounce = false;
-                curDebounce = 0;
+                button = 0;
             }
         }
 
         if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
+        float deltaT;
+        vec3 m = vec3(0.0f), r = vec3(0.0f);
+        bool fire = false;
+        getSixAxis(deltaT, m, r, fire);
+        GameLogic(deltaT, r);
 
-
-        GameLogic();
+        float groundLevel = perlinNoise((int)Pos.x/size, (int)Pos.z/size);
+        std::cout << "perlinX: " << (int)Pos.x/size << " perlinZ: " << (int)Pos.z/size << "\n";
+        gamePhysics(deltaT, m, groundLevel);
 
 
         UniformBufferObject ubo{};
@@ -272,7 +280,34 @@ protected:
         DS1.map(currentImage, &gubo, sizeof(gubo), 1);
     }
 
-    void GameLogic() {
+    float size = 0.025f;
+    float perlinNoise(int i, int j) {
+        const siv::PerlinNoise::seed_type seed = 123456u;
+        const siv::PerlinNoise perlin{ seed };
+
+        return 2.0f * (float) perlin.octave2D_01((i * 0.01), (j * 0.01), 4);
+    }
+
+    void gamePhysics(float deltaT, vec3 m, float ground) {
+        const float MOVE_SPEED = 2.0f;
+        // Position
+        glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
+        glm::vec3 uz = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(0,0,-1,1);
+        Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
+        Pos = Pos + MOVE_SPEED * m.y * glm::vec3(0,1,0) * deltaT;
+        Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
+
+        std::cout << ground << "\n";
+        if (Pos.y <= ground) {
+            std::cout << "collision";
+            Pos.y = ground;
+        } else {
+            Pos.y = Pos.y - 9.81f * deltaT * deltaT;
+        }
+        std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << "\n";
+    }
+
+    void GameLogic(float deltaT, vec3 r) {
         // Parameters
         // Camera FOV-y, Near Plane and Far Plane
         const float FOVy = glm::radians(45.0f);
@@ -286,13 +321,8 @@ protected:
         const float maxPitch = glm::radians(60.0f);
         // Rotation and motion speed
         const float ROT_SPEED = glm::radians(120.0f);
-        const float MOVE_SPEED = 2.0f;
 
         // Integration with the timers and the controllers
-        float deltaT;
-        glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
-        bool fire = false;
-        getSixAxis(deltaT, m, r, fire);
 
         // Game Logic implementation
         // Current Player Position - statc variable make sure its value remain unchanged in subsequent calls to the procedure
@@ -302,13 +332,7 @@ protected:
         glm::mat4 World = glm::mat4(1);
 
         // World
-        // Position
-        glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
-        glm::vec3 uz = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(0,0,-1,1);
-        Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
-        Pos = Pos + MOVE_SPEED * m.y * glm::vec3(0,1,0) * deltaT;
-        Pos.y = Pos.y < 0.0f ? 0.0f : Pos.y;
-        Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
+
         // Rotation
         Yaw = Yaw - ROT_SPEED * deltaT * r.y;
         Pitch = Pitch + ROT_SPEED * deltaT * r.x;

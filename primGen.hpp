@@ -1,5 +1,5 @@
 using namespace std;
-#include "PerlinNoise.hpp"
+
 void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int offset, float size, float gap, float x, float y,float z) {
 
     float startX = x*(size+gap);
@@ -66,18 +66,14 @@ void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int 
     vIdx.push_back(22+offset); vIdx.push_back(21+offset); vIdx.push_back(23+offset);
 }
 
+
 void Main::createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
-
-    const siv::PerlinNoise::seed_type seed = 123456u;
-    const siv::PerlinNoise perlin{ seed };
-
-    float size = 0.1f;
     int n = 500;
     for (int i =0; i < n; i++){
         for( int j =0; j < n; j++){
             int offset = (int)vDef.size();
-            float noise = perlin.octave2D_01((i * 0.01), (j * 0.01), 4);
-            createCubeMesh(vDef,vIdx, offset, size, 0.0f, (float)i,2.0f*noise,(float)j);
+            float noise = Main::perlinNoise(i, j);
+            createCubeMesh(vDef,vIdx, offset, size, 0.0f, (float)i,noise,(float)j);
         }
     }
 }
