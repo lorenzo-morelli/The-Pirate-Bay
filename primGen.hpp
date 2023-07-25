@@ -1,6 +1,6 @@
 using namespace std;
 
-void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int offset, float size, float gap, float x, float y,float z) {
+void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int offset, float size, float gap, float x, float y, float z) {
 
     float startX = x*(size+gap);
     float endX = x*(size+gap) + size;
@@ -69,11 +69,12 @@ void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int 
 
 void Main::createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
     int n = 500;
-    for (int i =0; i < n; i++){
-        for( int j =0; j < n; j++){
+    for (int i = 0; i < n; i++){
+        for( int j = 0; j < n; j++){
             int offset = (int)vDef.size();
             float noise = Main::perlinNoise(i, j);
             createCubeMesh(vDef,vIdx, offset, size, 0.0f, (float)i,noise,(float)j);
+            if (i == 126 && j == 54) std::cout << "IL NOSTRO NOISE E:::::::::::::::::" << noise;
         }
     }
 }

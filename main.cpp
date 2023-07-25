@@ -248,11 +248,8 @@ protected:
         vec3 m = vec3(0.0f), r = vec3(0.0f);
         bool fire = false;
         getSixAxis(deltaT, m, r, fire);
-        GameLogic(deltaT, r);
-
-        float groundLevel = perlinNoise((int)Pos.x/size, (int)Pos.z/size);
-        std::cout << "perlinX: " << (int)Pos.x/size << " perlinZ: " << (int)Pos.z/size << "\n";
-        gamePhysics(deltaT, m, groundLevel);
+        gameLogic(deltaT, r);
+        gamePhysics(deltaT, m);
 
 
         UniformBufferObject ubo{};
@@ -264,7 +261,6 @@ protected:
         ubo.nMat = glm::inverse(glm::transpose(ubo.mMat));
 
         float dang = Pitch + glm::radians(15.0f);
-
         GlobalUniformBufferObject gubo{};
 
         ubo.mMat = glm::scale(glm::mat4(1), glm::vec3(3));
@@ -288,7 +284,7 @@ protected:
         return 2.0f * (float) perlin.octave2D_01((i * 0.01), (j * 0.01), 4);
     }
 
-    void gamePhysics(float deltaT, vec3 m, float ground) {
+    void gamePhysics(float deltaT, vec3 m) {
         const float MOVE_SPEED = 2.0f;
         // Position
         glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
@@ -297,17 +293,19 @@ protected:
         Pos = Pos + MOVE_SPEED * m.y * glm::vec3(0,1,0) * deltaT;
         Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
 
-        std::cout << ground << "\n";
-        if (Pos.y <= ground) {
-            std::cout << "collision";
-            Pos.y = ground;
-        } else {
-            Pos.y = Pos.y - 9.81f * deltaT * deltaT;
-        }
+        float groundLevel = perlinNoise((int)(Pos.x/size), (int)(Pos.z/size));
+        std::cout << "perlinX: " << (int)(Pos.x/size) << " perlinZ: " << (int)(Pos.z/size) << "\n";
+        std::cout << groundLevel << "\n";
+        Pos.y = groundLevel;
+//        if (Pos.y <= groundLevel) {
+//            std::cout << "collision";
+//        } else {
+//            Pos.y = Pos.y - 9.81f * deltaT * deltaT;
+//        }
         std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << "\n";
     }
 
-    void GameLogic(float deltaT, vec3 r) {
+    void gameLogic(float deltaT, vec3 r) {
         // Parameters
         // Camera FOV-y, Near Plane and Far Plane
         const float FOVy = glm::radians(45.0f);
