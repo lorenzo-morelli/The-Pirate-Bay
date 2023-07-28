@@ -15,21 +15,21 @@ std::vector<SingleText> demoText = {
 
 // The uniform buffer object used in this example
 struct UniformBufferObject {
-    alignas(16) glm::mat4 mvpMat;
-    alignas(16) glm::mat4 mMat;
-    alignas(16) glm::mat4 nMat;
+    alignas(16) mat4 mvpMat;
+    alignas(16) mat4 mMat;
+    alignas(16) mat4 nMat;
 };
 
 struct GlobalUniformBufferObject {
-    alignas(16) glm::vec3 selector;
-    alignas(16) glm::vec3 lightDir;
-    alignas(16) glm::vec4 lightColor;
-    alignas(16) glm::vec3 eyePos;
+    alignas(16) vec3 selector;
+    alignas(16) vec3 lightDir;
+    alignas(16) vec4 lightColor;
+    alignas(16) vec3 eyePos;
 };
 
 struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 norm;
+    vec3 pos;
+    vec3 norm;
 };
 
 class Main;
@@ -54,12 +54,12 @@ protected:
     // Other application parameters
     int currScene = 0;
     float Ar;
-    glm::mat4 ViewPrj;
-    glm::vec3 Pos = glm::vec3(5.0f,3.5f,8.66f);
-    glm::vec3 cameraPos;
-    float Yaw = glm::radians(30.0f);
-    float Pitch = glm::radians(22.5f);
-    float Roll = glm::radians(0.0f);
+    mat4 ViewPrj;
+    vec3 Pos = vec3(0.0f,20.0f,0.0f);
+    vec3 cameraPos;
+    float Yaw = radians(0.0f);
+    float Pitch = radians(0.0f);
+    float Roll = radians(0.0f);
 
     // Here you set the main application parameters
     void setWindowParameters() {
@@ -80,7 +80,6 @@ protected:
 
     // What to do when the window changes size
     void onWindowResize(int w, int h) {
-        std::cout << "Window resized to: " << w << " x " << h << "\n";
         Ar = (float)w / (float)h;
     }
 
@@ -102,15 +101,15 @@ protected:
                 {0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX}
         }, {
                         {0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos),
-                                sizeof(glm::vec3), POSITION},
+                                sizeof(vec3), POSITION},
                         {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm),
-                                sizeof(glm::vec3), NORMAL}
+                                sizeof(vec3), NORMAL}
                 });
 
         // Pipelines [Shader couples]
         // The last array, is a vector of pointer to the layouts of the sets that will
         // be used in this pipeline. The first element will be set 0, and so on..
-        P1.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSL1});
+        P1.init(this, &VD, "shaders/ClassicVert.spv", "shaders/ToonFrag.spv", {&DSL1});
         P1.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL,
                                VK_CULL_MODE_NONE, false);
 
@@ -118,6 +117,7 @@ protected:
         createGrid(M1.vertices, M1.indices);
         M1.initMesh(this, &VD);
 
+        createFunctionMesh(M2.vertices, M2.indices);
         createFunctionMesh(M2.vertices, M2.indices);
         M2.initMesh(this, &VD);
 
@@ -181,14 +181,14 @@ protected:
                 DS1.bind(commandBuffer, P1, currentImage);
 
                 vkCmdDrawIndexed(commandBuffer,
-                                 static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
+                                 static_cast<uint32_t>(M2.indices.size()), 1, 0, 0, 0);
 
                 P1.bind(commandBuffer);
                 M1.bind(commandBuffer);
                 DS1.bind(commandBuffer, P1, currentImage);
 
                 vkCmdDrawIndexed(commandBuffer,
-                                 static_cast<uint32_t>(M2.indices.size()), 1, 0, 0, 0);
+                                 static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
 
                 break;
             case 2:
@@ -216,7 +216,7 @@ protected:
                 button = GLFW_KEY_SPACE;
                 currScene = (currScene+1) % 3;
                 std::cout << "Scene : " << currScene << "\n";
-//				Pos = glm::vec3(0,0,currScene == 0 ? 10 : 8);
+//				Pos = vec3(0,0,currScene == 0 ? 10 : 8);
                 RebuildPipeline();
             }
         } else {
@@ -256,20 +256,20 @@ protected:
         // Here is where you actually update your uniforms
 
         // updates global uniforms
-        ubo.mMat = glm::mat4(1);
+        ubo.mMat = mat4(1);
         ubo.mvpMat = ViewPrj;
-        ubo.nMat = glm::inverse(glm::transpose(ubo.mMat));
+        ubo.nMat = inverse(transpose(ubo.mMat));
 
-        float dang = Pitch + glm::radians(15.0f);
+        float dang = Pitch + radians(15.0f);
         GlobalUniformBufferObject gubo{};
 
-        ubo.mMat = glm::scale(glm::mat4(1), glm::vec3(3));
+        ubo.mMat = scale(mat4(1), vec3(3));
         ubo.mvpMat = ViewPrj * ubo.mMat;
-        ubo.nMat = glm::inverse(glm::transpose(ubo.mMat));
+        ubo.nMat = inverse(transpose(ubo.mMat));
 
-        gubo.selector = glm::vec3(showNormal ? 0 : 1, showNormal ? 1 : 0, 0);
-        gubo.lightDir = glm::normalize(glm::vec3(1, 2, 3));
-        gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        gubo.selector = vec3(showNormal ? 0 : 1, showNormal ? 1 : 0, 0);
+        gubo.lightDir = normalize(vec3(1, 2, 3));
+        gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
         gubo.eyePos = cameraPos;
 
         DS1.map(currentImage, &ubo, sizeof(ubo), 0);
@@ -282,43 +282,45 @@ protected:
         const siv::PerlinNoise perlin{ seed };
 
         return 2.0f * (float) perlin.octave2D_01((i * 0.01), (j * 0.01), 4);
+
+        //return 2.0f * sin(i*0.01f);
     }
 
     void gamePhysics(float deltaT, vec3 m) {
         const float MOVE_SPEED = 2.0f;
         // Position
-        glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
-        glm::vec3 uz = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(0,0,-1,1);
+        vec3 ux = rotate(mat4(1.0f), Yaw, vec3(0,1,0)) * vec4(1,0,0,1);
+        vec3 uz = rotate(mat4(1.0f), Yaw, vec3(0,1,0)) * vec4(0,0,-1,1);
         Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
-        Pos = Pos + MOVE_SPEED * m.y * glm::vec3(0,1,0) * deltaT;
+        Pos = Pos + MOVE_SPEED * m.y * vec3(0,1,0) * deltaT;
         Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
 
-        float groundLevel = perlinNoise((int)(Pos.x/size), (int)(Pos.z/size));
+        float groundLevel = perlinNoise((int)((Pos.x/size)/3.0f), (int)((Pos.z/size)/3.0f));
         std::cout << "perlinX: " << (int)(Pos.x/size) << " perlinZ: " << (int)(Pos.z/size) << "\n";
         std::cout << groundLevel << "\n";
-        Pos.y = groundLevel;
-//        if (Pos.y <= groundLevel) {
-//            std::cout << "collision";
-//        } else {
-//            Pos.y = Pos.y - 9.81f * deltaT * deltaT;
-//        }
+        Pos.y = groundLevel*3.0f;
+        if (Pos.y <= groundLevel) {
+            std::cout << "collision";
+        } else {
+            Pos.y = Pos.y - 9.81f * deltaT * deltaT;
+        }
         std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << "\n";
     }
 
     void gameLogic(float deltaT, vec3 r) {
         // Parameters
         // Camera FOV-y, Near Plane and Far Plane
-        const float FOVy = glm::radians(45.0f);
+        const float FOVy = radians(45.0f);
         const float nearPlane = 0.1f;
         const float farPlane = 100.f;
         // Camera target height and distance
-        const float camHeight = 1.25;
-        const float camDist = 1.5;
+        const float camHeight = 0.5f;
+        const float camDist = 0.0001f;
         // Camera Pitch limits
-        const float minPitch = glm::radians(-60.0f);
-        const float maxPitch = glm::radians(60.0f);
+        const float minPitch = radians(-60.0f);
+        const float maxPitch = radians(60.0f);
         // Rotation and motion speed
-        const float ROT_SPEED = glm::radians(120.0f);
+        const float ROT_SPEED = radians(120.0f);
 
         // Integration with the timers and the controllers
 
@@ -326,8 +328,8 @@ protected:
         // Current Player Position - statc variable make sure its value remain unchanged in subsequent calls to the procedure
 
         // To be done in the assignment
-        ViewPrj = glm::mat4(1);
-        glm::mat4 World = glm::mat4(1);
+        ViewPrj = mat4(1);
+        mat4 World = mat4(1);
 
         // World
 
@@ -337,27 +339,27 @@ protected:
         Pitch  =  Pitch < minPitch ? minPitch :
                   (Pitch > maxPitch ? maxPitch : Pitch);
         Roll   = Roll   - ROT_SPEED * deltaT * r.z;
-        Roll   = Roll < glm::radians(-175.0f) ? glm::radians(-175.0f) :
-                 (Roll > glm::radians( 175.0f) ? glm::radians( 175.0f) : Roll);
+        Roll   = Roll < radians(-175.0f) ? radians(-175.0f) :
+                 (Roll > radians( 175.0f) ? radians( 175.0f) : Roll);
 
 //std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
 
         // Final world matrix computaiton
-        World = glm::translate(glm::mat4(1), Pos) * glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0));
+        World = translate(mat4(1), Pos) * rotate(mat4(1.0f), Yaw, vec3(0,1,0));
 
         // Projection
-        glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
+        mat4 Prj = perspective(FOVy, Ar, nearPlane, farPlane);
         Prj[1][1] *= -1;
 
         // View
         // Target
-        glm::vec3 target = Pos + glm::vec3(0.0f, camHeight, 0.0f);
+        vec3 target = Pos + vec3(0.0f, camHeight, 0.0f);
 
         // Camera position, depending on Yaw parameter, but not character direction
-        cameraPos = World * glm::vec4(0.0f, camHeight + camDist * sin(Pitch), camDist * cos(Pitch), 1.0);
+        cameraPos = World * vec4(0.0f, camHeight + camDist * sin(Pitch), camDist * cos(Pitch), 1.0);
         // Damping of camera
-        glm::mat4 View = glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0,0,1)) *
-                         glm::lookAt(cameraPos, target, glm::vec3(0,1,0));
+        mat4 View = rotate(mat4(1.0f), -Roll, vec3(0,0,1)) *
+                         lookAt(cameraPos, target, vec3(0,1,0));
 
         ViewPrj = Prj * View;
     }

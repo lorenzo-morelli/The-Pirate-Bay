@@ -74,7 +74,8 @@ void Main::createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
             int offset = (int)vDef.size();
             float noise = Main::perlinNoise(i, j);
             createCubeMesh(vDef,vIdx, offset, size, 0.0f, (float)i,noise,(float)j);
-            if (i == 126 && j == 54) std::cout << "IL NOSTRO NOISE E:::::::::::::::::" << noise;
+            if (i == 248 && j == 0) std::cout << "IL NOSTRO NOISE PRIMA:::::::::::::::::" << noise;
+            if (i == 252 && j == 0) std::cout << "IL NOSTRO NOISE DOPO:::::::::::::::::" << noise;
         }
     }
 }
