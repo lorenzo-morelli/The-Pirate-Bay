@@ -277,7 +277,7 @@ protected:
     }
 
     float size = 0.025f;
-    float perlinNoise(int i, int j) {
+    float perlinNoise(float i, float j) {
         const siv::PerlinNoise::seed_type seed = 123456u;
         const siv::PerlinNoise perlin{ seed };
 
@@ -295,16 +295,13 @@ protected:
         Pos = Pos + MOVE_SPEED * m.y * vec3(0,1,0) * deltaT;
         Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
 
-        float groundLevel = perlinNoise((int)((Pos.x/size)/3.0f), (int)((Pos.z/size)/3.0f));
-        std::cout << "perlinX: " << (int)(Pos.x/size) << " perlinZ: " << (int)(Pos.z/size) << "\n";
-        std::cout << groundLevel << "\n";
+        float groundLevel = perlinNoise((Pos.x/size)/3.0f, (Pos.z/size)/3.0f);
         Pos.y = groundLevel*3.0f;
         if (Pos.y <= groundLevel) {
             std::cout << "collision";
         } else {
             Pos.y = Pos.y - 9.81f * deltaT * deltaT;
         }
-        std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << "\n";
     }
 
     void gameLogic(float deltaT, vec3 r) {
