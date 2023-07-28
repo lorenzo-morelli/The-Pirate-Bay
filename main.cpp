@@ -8,8 +8,8 @@ using namespace glm;
 
 
 std::vector<SingleText> demoText = {
-        {1, {"Cube", "", "", ""}, 0, 0},
-        {1, {"Surface", "", "", ""}, 0, 0},
+        {1, {"Cube",     "", "", ""}, 0, 0},
+        {1, {"Surface",  "", "", ""}, 0, 0},
         {1, {"Cylinder", "", "", ""}, 0, 0}
 };
 
@@ -55,7 +55,7 @@ protected:
     int currScene = 0;
     float Ar;
     mat4 ViewPrj;
-    vec3 Pos = vec3(0.0f,20.0f,0.0f);
+    vec3 Pos = vec3(0.0f, 20.0f, 0.0f);
     vec3 cameraPos;
     float Yaw = radians(0.0f);
     float Pitch = radians(0.0f);
@@ -68,7 +68,7 @@ protected:
         windowHeight = 600;
         windowTitle = "Fantastico Progetto di Morello e Piaggi";
         windowResizable = GLFW_TRUE;
-        initialBackgroundColor = {180.0f/255.0f, 255.0f/255.0f, 255.0/255.0f, 1.0f};
+        initialBackgroundColor = {180.0f / 255.0f, 255.0f / 255.0f, 255.0 / 255.0f, 1.0f};
 
         // Descriptor pool sizes
         uniformBlocksInPool = 7;
@@ -80,7 +80,7 @@ protected:
 
     // What to do when the window changes size
     void onWindowResize(int w, int h) {
-        Ar = (float)w / (float)h;
+        Ar = (float) w / (float) h;
     }
 
     // Here you load and setup all your Vulkan Models and Texutures.
@@ -133,7 +133,7 @@ protected:
         P1.create();
 
         DS1.init(this, &DSL1, {
-                {0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+                {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
         });
         txt.pipelinesAndDescriptorSetsInit();
@@ -166,7 +166,7 @@ protected:
     // You send to the GPU all the objects you want to draw,
     // with their buffers and textures
     void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
-        switch(currScene) {
+        switch (currScene) {
             case 0:
                 P1.bind(commandBuffer);
                 M1.bind(commandBuffer);
@@ -210,17 +210,17 @@ protected:
         static bool debounce = false;
         static int button = 0;
 
-        if(glfwGetKey(window, GLFW_KEY_SPACE)) {
-            if(!debounce) {
+        if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+            if (!debounce) {
                 debounce = true;
                 button = GLFW_KEY_SPACE;
-                currScene = (currScene+1) % 3;
+                currScene = (currScene + 1) % 3;
                 std::cout << "Scene : " << currScene << "\n";
 //				Pos = vec3(0,0,currScene == 0 ? 10 : 8);
                 RebuildPipeline();
             }
         } else {
-            if((button == GLFW_KEY_SPACE) && debounce) {
+            if ((button == GLFW_KEY_SPACE) && debounce) {
                 debounce = false;
                 button = 0;
             }
@@ -228,20 +228,20 @@ protected:
 
         static bool showNormal = false;
 
-        if(glfwGetKey(window, GLFW_KEY_N)) {
-            if(!debounce) {
+        if (glfwGetKey(window, GLFW_KEY_N)) {
+            if (!debounce) {
                 debounce = true;
                 button = GLFW_KEY_N;
                 showNormal = !showNormal;
             }
         } else {
-            if((button == GLFW_KEY_N) && debounce) {
+            if ((button == GLFW_KEY_N) && debounce) {
                 debounce = false;
                 button = 0;
             }
         }
 
-        if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
         float deltaT;
@@ -277,9 +277,10 @@ protected:
     }
 
     float size = 0.025f;
+
     float perlinNoise(float i, float j) {
         const siv::PerlinNoise::seed_type seed = 123456u;
-        const siv::PerlinNoise perlin{ seed };
+        const siv::PerlinNoise perlin{seed};
 
         return 2.0f * (float) perlin.octave2D_01((i * 0.01), (j * 0.01), 4);
 
@@ -288,26 +289,46 @@ protected:
 
     void gamePhysics(float deltaT, vec3 m) {
         const float MOVE_SPEED = 2.0f;
-        // Position
-        vec3 ux = rotate(mat4(1.0f), Yaw, vec3(0,1,0)) * vec4(1,0,0,1);
-        vec3 uz = rotate(mat4(1.0f), Yaw, vec3(0,1,0)) * vec4(0,0,-1,1);
-        Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
-        Pos = Pos + MOVE_SPEED * m.y * vec3(0,1,0) * deltaT;
-        Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
+        const float JUMP_SPEED = 6.0f; // Adjust this value to control jump height
 
-        float groundLevel = perlinNoise((Pos.x/size)/3.0f, (Pos.z/size)/3.0f);
-        Pos.y = groundLevel*3.0f;
+        // Position
+        vec3 ux = rotate(mat4(1.0f), Yaw, vec3(0, 1, 0)) * vec4(1, 0, 0, 1);
+        vec3 uz = rotate(mat4(1.0f), Yaw, vec3(0, 1, 0)) * vec4(0, 0, -1, 1);
+        vec3 velocity = MOVE_SPEED * (m.x * ux + m.z * uz);
+
+        // Apply acceleration due to gravity
+        velocity.y -= 9.81f * deltaT;
+
+        // Update position based on velocity
+        Pos = Pos + velocity * deltaT;
+
+        // Calculate the height of the ground using Perlin noise
+        float groundLevel = perlinNoise((Pos.x / size) / 3.0f, (Pos.z / size) / 3.0f);
+        groundLevel = groundLevel * 3.0f;
+        Pos.y = groundLevel;
+
+        // Check for collision with the ground
         if (Pos.y <= groundLevel) {
-            std::cout << "collision";
-        } else {
-            Pos.y = Pos.y - 9.81f * deltaT * deltaT;
+            Pos.y = groundLevel;
+            // If the object is on the ground, reset its vertical velocity
+            velocity.y = 0.0f;
         }
+
+        // Jump with gravity
+        if (glfwGetKey(window, GLFW_KEY_N) && Pos.y <= groundLevel + 0.001f) {
+            std::cout << "Jumping\n";
+            // Only allow jumping if the object is very close to the ground (avoid double jumps)
+            velocity.y = JUMP_SPEED;
+        }
+
+        // Update the position again after the jump
+        Pos = Pos + velocity * deltaT;
     }
 
     void gameLogic(float deltaT, vec3 r) {
         // Parameters
         // Camera FOV-y, Near Plane and Far Plane
-        const float FOVy = radians(45.0f);
+        const float FOVy = radians(80.0f);
         const float nearPlane = 0.1f;
         const float farPlane = 100.f;
         // Camera target height and distance
@@ -333,16 +354,16 @@ protected:
         // Rotation
         Yaw = Yaw - ROT_SPEED * deltaT * r.y;
         Pitch = Pitch + ROT_SPEED * deltaT * r.x;
-        Pitch  =  Pitch < minPitch ? minPitch :
-                  (Pitch > maxPitch ? maxPitch : Pitch);
-        Roll   = Roll   - ROT_SPEED * deltaT * r.z;
-        Roll   = Roll < radians(-175.0f) ? radians(-175.0f) :
-                 (Roll > radians( 175.0f) ? radians( 175.0f) : Roll);
+        Pitch = Pitch < minPitch ? minPitch :
+                (Pitch > maxPitch ? maxPitch : Pitch);
+        Roll = Roll - ROT_SPEED * deltaT * r.z;
+        Roll = Roll < radians(-175.0f) ? radians(-175.0f) :
+               (Roll > radians(175.0f) ? radians(175.0f) : Roll);
 
 //std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
 
         // Final world matrix computaiton
-        World = translate(mat4(1), Pos) * rotate(mat4(1.0f), Yaw, vec3(0,1,0));
+        World = translate(mat4(1), Pos) * rotate(mat4(1.0f), Yaw, vec3(0, 1, 0));
 
         // Projection
         mat4 Prj = perspective(FOVy, Ar, nearPlane, farPlane);
@@ -355,14 +376,16 @@ protected:
         // Camera position, depending on Yaw parameter, but not character direction
         cameraPos = World * vec4(0.0f, camHeight + camDist * sin(Pitch), camDist * cos(Pitch), 1.0);
         // Damping of camera
-        mat4 View = rotate(mat4(1.0f), -Roll, vec3(0,0,1)) *
-                         lookAt(cameraPos, target, vec3(0,1,0));
+        mat4 View = rotate(mat4(1.0f), -Roll, vec3(0, 0, 1)) *
+                    lookAt(cameraPos, target, vec3(0, 1, 0));
 
         ViewPrj = Prj * View;
     }
 
     void createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
+
     void createFunctionMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
+
     void createCylinderMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
 };
 
@@ -375,7 +398,7 @@ int main() {
 
     try {
         app.run();
-    } catch (const std::exception& e) {
+    } catch (const std::exception &e) {
         std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
