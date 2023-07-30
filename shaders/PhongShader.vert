@@ -12,6 +12,7 @@ layout(set = 0, binding = 1) uniform GlobalUniformBufferObject {
 	vec3 lightDir;
 	vec3 lightColor;
 	vec3 eyePos;
+	float time;
 } gubo;
 
 layout(location = 0) in vec3 pos;
@@ -24,14 +25,7 @@ void main() {
 	float x = pos.x;
 	float y = pos.y;
 	float z = pos.z;
-//	float t = gubo.time;
-	
-//	/***** Insert the code here to compute the correct value of y ****/
-//	float cx = sin(t/3) / 2;
-//	float cz = cos(t/3) / 2;
-//	float l = sqrt(pow((x - cx), 2) + pow((z - cz), 2));
-//	y = y + sin(t/4  + 4 * l) * exp(-l * l / 4);
-//	/***** Leave it as is from this point on ****/
+	float t = gubo.time;
 	
 	vec3 vpos = vec3(x, y, z);
 	
