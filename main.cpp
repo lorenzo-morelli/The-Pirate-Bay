@@ -55,7 +55,7 @@ protected:
     int currScene = 0;
     float Ar;
     mat4 ViewPrj;
-    vec3 Pos = vec3(0.0f, 20.0f, 0.0f);
+    vec3 Pos = vec3(0.0f, 5.0f, 0.0f);
     vec3 cameraPos;
     float Yaw = radians(0.0f);
     float Pitch = radians(0.0f);
@@ -288,8 +288,10 @@ protected:
     }
 
     void gamePhysics(float deltaT, vec3 m) {
-        const float MOVE_SPEED = 2.0f;
-        const float JUMP_SPEED = 6.0f; // Adjust this value to control jump height
+        const float MOVE_SPEED = 1.0f;
+        const float JUMP_SPEED = 15.0f; // Adjust this value to control jump height
+        static bool jumping = false;
+        static float jumpTime = 0.0f;
 
         // Position
         vec3 ux = rotate(mat4(1.0f), Yaw, vec3(0, 1, 0)) * vec4(1, 0, 0, 1);
@@ -305,7 +307,6 @@ protected:
         // Calculate the height of the ground using Perlin noise
         float groundLevel = perlinNoise((Pos.x / size) / 3.0f, (Pos.z / size) / 3.0f);
         groundLevel = groundLevel * 3.0f;
-        Pos.y = groundLevel;
 
         // Check for collision with the ground
         if (Pos.y <= groundLevel) {
@@ -318,7 +319,13 @@ protected:
         if (glfwGetKey(window, GLFW_KEY_N) && Pos.y <= groundLevel + 0.001f) {
             std::cout << "Jumping\n";
             // Only allow jumping if the object is very close to the ground (avoid double jumps)
-            velocity.y = JUMP_SPEED;
+            jumping = true;
+            jumpTime = 0.1f;
+        }
+
+        if (jumping && jumpTime >= 0.0f) {
+            velocity.y += 100.0f * deltaT;
+            jumpTime -= deltaT;
         }
 
         // Update the position again after the jump
