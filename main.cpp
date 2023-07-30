@@ -290,7 +290,6 @@ protected:
     void gamePhysics(float deltaT, vec3 m) {
         const float MOVE_SPEED = 1.0f;
         const float JUMP_SPEED = 15.0f; // Adjust this value to control jump height
-        static bool jumping = false;
         static float jumpTime = 0.0f;
 
         // Position
@@ -299,7 +298,7 @@ protected:
         vec3 velocity = MOVE_SPEED * (m.x * ux + m.z * uz);
 
         // Apply acceleration due to gravity
-        velocity.y -= 9.81f * deltaT;
+        velocity.y -= 98.0f * deltaT;
 
         // Update position based on velocity
         Pos = Pos + velocity * deltaT;
@@ -319,13 +318,12 @@ protected:
         if (glfwGetKey(window, GLFW_KEY_N) && Pos.y <= groundLevel + 0.001f) {
             std::cout << "Jumping\n";
             // Only allow jumping if the object is very close to the ground (avoid double jumps)
-            jumping = true;
-            jumpTime = 0.1f;
+            jumpTime = 5.0f;
         }
 
-        if (jumping && jumpTime >= 0.0f) {
-            velocity.y += 100.0f * deltaT;
-            jumpTime -= deltaT;
+        if (jumpTime >= 0.0f) {
+            velocity.y += jumpTime*jumpTime;
+            jumpTime -= 0.5f;
         }
 
         // Update the position again after the jump
