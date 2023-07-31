@@ -26,7 +26,7 @@ void main() {
 	float y = pos.y;
 	float z = pos.z;
 	float t = gubo.time;
-	
+
 	vec3 vpos = vec3(x, y, z);
 	
 	gl_Position = ubo.mvpMat * vec4(vpos, 1.0);
