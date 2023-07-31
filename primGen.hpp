@@ -74,12 +74,9 @@ void Main::createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
             int offset = (int)vDef.size();
             float noise = Main::perlinNoise((float)i, (float)j);
             createCubeMesh(vDef,vIdx, offset, size, 0.0f, (float)i,noise,(float)j);
-            if (i == 248 && j == 0) std::cout << "IL NOSTRO NOISE PRIMA:::::::::::::::::" << noise;
-            if (i == 252 && j == 0) std::cout << "IL NOSTRO NOISE DOPO:::::::::::::::::" << noise;
         }
     }
 }
-
 
 void Main::createFunctionMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
     // The surface is defined by equation y = sin(x) * cos(z) with -3 <= x <= 3 and -3 <= z <= 3

@@ -176,6 +176,7 @@ protected:
                 vkCmdDrawIndexed(commandBuffer,
                                  static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
                 break;
+
             case 1:
                 P1.bind(commandBuffer);
                 M2.bind(commandBuffer);
@@ -211,17 +212,17 @@ protected:
         static bool debounce = false;
         static int button = 0;
 
-        if (glfwGetKey(window, GLFW_KEY_SPACE)) {
+        if (glfwGetKey(window, GLFW_KEY_N)) {
             if (!debounce) {
                 debounce = true;
-                button = GLFW_KEY_SPACE;
+                button = GLFW_KEY_N;
                 currScene = (currScene + 1) % 3;
                 std::cout << "Scene : " << currScene << "\n";
 //				Pos = vec3(0,0,currScene == 0 ? 10 : 8);
                 RebuildPipeline();
             }
         } else {
-            if ((button == GLFW_KEY_SPACE) && debounce) {
+            if ((button == GLFW_KEY_N) && debounce) {
                 debounce = false;
                 button = 0;
             }
@@ -229,14 +230,14 @@ protected:
 
         static bool showNormal = false;
 
-        if (glfwGetKey(window, GLFW_KEY_N)) {
+        if (glfwGetKey(window, GLFW_KEY_SPACE)) {
             if (!debounce) {
                 debounce = true;
-                button = GLFW_KEY_N;
+                button = GLFW_KEY_SPACE;
                 showNormal = !showNormal;
             }
         } else {
-            if ((button == GLFW_KEY_N) && debounce) {
+            if ((button == GLFW_KEY_SPACE) && debounce) {
                 debounce = false;
                 button = 0;
             }
@@ -342,7 +343,7 @@ protected:
         }
 
         // Jump with gravity
-        if (glfwGetKey(window, GLFW_KEY_N) && Pos.y <= groundLevel + 0.001f) {
+        if (glfwGetKey(window, GLFW_KEY_SPACE) && Pos.y <= groundLevel + 0.001f) {
             std::cout << "Jumping\n";
             // Only allow jumping if the object is very close to the ground (avoid double jumps)
             jumpTime = 5.0f;
