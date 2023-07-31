@@ -265,7 +265,6 @@ protected:
         float dang = Pitch + radians(15.0f);
 
 
-
         ubo.mMat = scale(mat4(1), vec3(3));
         ubo.mvpMat = ViewPrj * ubo.mMat;
         ubo.nMat = inverse(transpose(ubo.mMat));
@@ -295,20 +294,20 @@ protected:
 
 
         // Calculate the distance from the center of the grid (assuming it is centered at (0, 0))
-        float x =(i-250);
-        float y =(j-250);
-        float distanceFromCenter = std::sqrt(x*x + y*y);
+        float x = (i - 250);
+        float y = (j - 250);
+        float distanceFromCenter = std::sqrt(x * x + y * y);
 
         // Define parameters for the Gaussian RBF
         float amplitude = 2.0f; // Amplitude of the RBF
         float sigmaSquared = 100.0f; // Variance of the RBF
 
         // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
-        float perlinValue = (float)perlin.octave2D_01(i*0.01f, j*0.01f, 4);
+        float perlinValue = (float) perlin.octave2D_01(i * 0.01f, j * 0.01f, 4);
         float normalizedDistanceFromCenter = distanceFromCenter / 250.0f; // Normalize distance to range [0,1]
         normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
 
-        return amplitude * perlinValue * std::exp(-normalizedDistanceFromCenter*distanceFromCenter / sigmaSquared);
+        return amplitude * perlinValue * std::exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
 
         //return 2.0f * (float) perlin.octave2D_01((i * 0.01), (j * 0.01), 4);
 
@@ -350,7 +349,7 @@ protected:
         }
 
         if (jumpTime >= 0.0f) {
-            velocity.y += jumpTime*jumpTime;
+            velocity.y += jumpTime * jumpTime;
             jumpTime -= 0.5f;
         }
 
