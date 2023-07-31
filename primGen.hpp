@@ -1,6 +1,6 @@
 using namespace std;
 
-void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int offset, float size, float gap, float x, float y, float z) {
+void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float size, float gap, float x, float y, float z) {
 
     float startX = x*(size+gap);
     float endX = x*(size+gap) + size;
@@ -67,7 +67,7 @@ void createCubeMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int 
 }
 
 
-void Main::createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
+void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     int n = 500;
     for (int i = 0; i < n; i++){
         for( int j = 0; j < n; j++){
@@ -78,7 +78,7 @@ void Main::createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
     }
 }
 
-void Main::createFunctionMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
+void Main::createFunctionMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     // The surface is defined by equation y = sin(x) * cos(z) with -3 <= x <= 3 and -3 <= z <= 3
     int res = 40;
     for (int i = 0; i < res; i++) {

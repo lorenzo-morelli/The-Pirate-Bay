@@ -5,9 +5,10 @@
 #include "PerlinNoise.hpp"
 
 using namespace glm;
+using namespace std;
 
 
-std::vector<SingleText> demoText = {
+vector<SingleText> demoText = {
         {1, {"Cube",     "", "", ""}, 0, 0},
         {1, {"Surface",  "", "", ""}, 0, 0},
         {1, {"Cylinder", "", "", ""}, 0, 0}
@@ -40,15 +41,16 @@ protected:
     // Here you list all the Vulkan objects you need:
 
     // Descriptor Layouts [what will be passed to the shaders]
-    DescriptorSetLayout DSL1;
+    DescriptorSetLayout DSLIsland, DSLSpawn;
 
     // Pipelines [Shader couples]
     VertexDescriptor VD;
-    Pipeline P1;
+    Pipeline pipelineIsland;
+    Pipeline pipelineSpawn;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
-    Model<Vertex> M1, M2, M3;
-    DescriptorSet DS1;
+    Model<Vertex> island, spawn, M2, M3;
+    DescriptorSet DSIsland, DSSpawn;
 
     TextMaker txt;
 
@@ -88,7 +90,16 @@ protected:
     // Here you also create your Descriptor set layouts and load the shaders for the pipelines
     void localInit() {
         // Descriptor Layouts [what will be passed to the shaders]
-        DSL1.init(this, {
+        DSLIsland.init(this, {
+                // this array contains the binding:
+                // first  element : the binding number
+                // second element : the type of element (buffer or texture)
+                // third  element : the pipeline stage where it will be used
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+        });
+
+        DSLSpawn.init(this, {
                 // this array contains the binding:
                 // first  element : the binding number
                 // second element : the type of element (buffer or texture)
@@ -110,13 +121,16 @@ protected:
         // Pipelines [Shader couples]
         // The last array, is a vector of pointer to the layouts of the sets that will
         // be used in this pipeline. The first element will be set 0, and so on..
-        P1.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSL1});
-        P1.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL,
-                               VK_CULL_MODE_NONE, false);
+        pipelineIsland.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLIsland});
+        pipelineSpawn.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
+        pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+        pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
-        createGrid(M1.vertices, M1.indices);
-        M1.initMesh(this, &VD);
+        createGrid(island.vertices, island.indices);
+        createCubeMesh(spawn.vertices, spawn.indices, 0, 3, 0, 1, 10, 1);
+        island.initMesh(this, &VD);
+        spawn.initMesh(this, &VD);
 
         createFunctionMesh(M2.vertices, M2.indices);
         createFunctionMesh(M2.vertices, M2.indices);
@@ -131,9 +145,14 @@ protected:
     // Here you create your pipelines and Descriptor Sets!
     void pipelinesAndDescriptorSetsInit() {
         // This creates a new pipeline (with the current surface), using its shaders
-        P1.create();
+        pipelineIsland.create();
+        pipelineSpawn.create();
 
-        DS1.init(this, &DSL1, {
+        DSIsland.init(this, &DSLIsland, {
+                {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+        });
+        DSSpawn.init(this, &DSLSpawn, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
         });
@@ -142,23 +161,26 @@ protected:
 
     // Here you destroy your pipelines and Descriptor Sets!
     void pipelinesAndDescriptorSetsCleanup() {
-        P1.cleanup();
-
-        DS1.cleanup();
-
+        pipelineIsland.cleanup();
+        pipelineSpawn.cleanup();
+        DSIsland.cleanup();
+        DSSpawn.cleanup();
         txt.pipelinesAndDescriptorSetsCleanup();
     }
 
     // Here you destroy all the Models, Texture and Desc. Set Layouts you created!
     // You also have to destroy the pipelines
     void localCleanup() {
-        M1.cleanup();
+        island.cleanup();
+        spawn.cleanup();
         M2.cleanup();
         M3.cleanup();
 
-        DSL1.cleanup();
+        DSLIsland.cleanup();
+        DSLSpawn.cleanup();
 
-        P1.destroy();
+        pipelineIsland.destroy();
+        pipelineSpawn.destroy();
 
         txt.localCleanup();
     }
@@ -169,40 +191,55 @@ protected:
     void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
         switch (currScene) {
             case 0:
-                P1.bind(commandBuffer);
-                M1.bind(commandBuffer);
-                DS1.bind(commandBuffer, P1, currentImage);
-
-                vkCmdDrawIndexed(commandBuffer,
-                                 static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
+                pipelineIsland.bind(commandBuffer);
+                island.bind(commandBuffer);
+                DSIsland.bind(commandBuffer, pipelineIsland, currentImage);
+                vkCmdDrawIndexed(
+                        commandBuffer,
+                        static_cast<uint32_t>(island.indices.size()),
+                        1,
+                        0,
+                        0,
+                        0
+                );
+                pipelineSpawn.bind(commandBuffer);
+                spawn.bind(commandBuffer);
+                DSSpawn.bind(commandBuffer, pipelineSpawn, currentImage);
+                vkCmdDrawIndexed(
+                        commandBuffer,
+                        static_cast<uint32_t>(spawn.indices.size()),
+                        1,
+                        0,
+                        0,
+                        0
+                );
                 break;
 
             case 1:
-                P1.bind(commandBuffer);
+                pipelineIsland.bind(commandBuffer);
                 M2.bind(commandBuffer);
-                DS1.bind(commandBuffer, P1, currentImage);
+                DSIsland.bind(commandBuffer, pipelineIsland, currentImage);
 
                 vkCmdDrawIndexed(commandBuffer,
                                  static_cast<uint32_t>(M2.indices.size()), 1, 0, 0, 0);
 
-                P1.bind(commandBuffer);
-                M1.bind(commandBuffer);
-                DS1.bind(commandBuffer, P1, currentImage);
+                pipelineIsland.bind(commandBuffer);
+                island.bind(commandBuffer);
+                DSIsland.bind(commandBuffer, pipelineIsland, currentImage);
 
                 vkCmdDrawIndexed(commandBuffer,
-                                 static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
+                                 static_cast<uint32_t>(island.indices.size()), 1, 0, 0, 0);
 
                 break;
             case 2:
-                P1.bind(commandBuffer);
+                pipelineIsland.bind(commandBuffer);
                 M3.bind(commandBuffer);
-                DS1.bind(commandBuffer, P1, currentImage);
+                DSIsland.bind(commandBuffer, pipelineIsland, currentImage);
 
                 vkCmdDrawIndexed(commandBuffer,
                                  static_cast<uint32_t>(M3.indices.size()), 1, 0, 0, 0);
                 break;
         }
-
         txt.populateCommandBuffer(commandBuffer, currentImage, currScene);
     }
 
@@ -217,7 +254,7 @@ protected:
                 debounce = true;
                 button = GLFW_KEY_N;
                 currScene = (currScene + 1) % 3;
-                std::cout << "Scene : " << currScene << "\n";
+                cout << "Scene : " << currScene << "\n";
 //				Pos = vec3(0,0,currScene == 0 ? 10 : 8);
                 RebuildPipeline();
             }
@@ -282,8 +319,10 @@ protected:
         gubo.eyePos = cameraPos;
 
 
-        DS1.map(currentImage, &ubo, sizeof(ubo), 0);
-        DS1.map(currentImage, &gubo, sizeof(gubo), 1);
+        DSIsland.map(currentImage, &ubo, sizeof(ubo), 0);
+        DSIsland.map(currentImage, &gubo, sizeof(gubo), 1);
+        DSSpawn.map(currentImage, &ubo, sizeof(ubo), 0);
+        DSSpawn.map(currentImage, &gubo, sizeof(gubo), 1);
     }
 
     float size = 0.025f;
@@ -296,7 +335,7 @@ protected:
         // Calculate the distance from the center of the grid (assuming it is centered at (0, 0))
         float x = (i - 250);
         float y = (j - 250);
-        float distanceFromCenter = std::sqrt(x * x + y * y);
+        float distanceFromCenter = sqrt(x * x + y * y);
 
         // Define parameters for the Gaussian RBF
         float amplitude = 2.0f; // Amplitude of the RBF
@@ -307,7 +346,7 @@ protected:
         float normalizedDistanceFromCenter = distanceFromCenter / 250.0f; // Normalize distance to range [0,1]
         normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
 
-        return amplitude * perlinValue * std::exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
+        return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
 
         //return 2.0f * (float) perlin.octave2D_01((i * 0.01), (j * 0.01), 4);
 
@@ -343,7 +382,7 @@ protected:
 
         // Jump with gravity
         if (glfwGetKey(window, GLFW_KEY_SPACE) && Pos.y <= groundLevel + 0.001f) {
-            std::cout << "Jumping\n";
+            cout << "Jumping\n";
             // Only allow jumping if the object is very close to the ground (avoid double jumps)
             jumpTime = 5.0f;
         }
@@ -358,8 +397,6 @@ protected:
     }
 
     void gameLogic(float deltaT, vec3 r) {
-        // Parameters
-        // Camera FOV-y, Near Plane and Far Plane
         const float FOVy = radians(80.0f);
         const float nearPlane = 0.1f;
         const float farPlane = 100.f;
@@ -372,16 +409,8 @@ protected:
         // Rotation and motion speed
         const float ROT_SPEED = radians(120.0f);
 
-        // Integration with the timers and the controllers
-
-        // Game Logic implementation
-        // Current Player Position - statc variable make sure its value remain unchanged in subsequent calls to the procedure
-
-        // To be done in the assignment
         ViewPrj = mat4(1);
         mat4 World = mat4(1);
-
-        // World
 
         // Rotation
         Yaw = Yaw - ROT_SPEED * deltaT * r.y;
@@ -392,8 +421,6 @@ protected:
         Roll = Roll < radians(-175.0f) ? radians(-175.0f) :
                (Roll > radians(175.0f) ? radians(175.0f) : Roll);
 
-//std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
-
         // Final world matrix computaiton
         World = translate(mat4(1), Pos) * rotate(mat4(1.0f), Yaw, vec3(0, 1, 0));
 
@@ -401,7 +428,6 @@ protected:
         mat4 Prj = perspective(FOVy, Ar, nearPlane, farPlane);
         Prj[1][1] *= -1;
 
-        // View
         // Target
         vec3 target = Pos + vec3(0.0f, camHeight, 0.0f);
 
@@ -414,11 +440,10 @@ protected:
         ViewPrj = Prj * View;
     }
 
-    void createGrid(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
-
-    void createFunctionMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
-
-    void createCylinderMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx);
+    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+    void createFunctionMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+    void createCylinderMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+    void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float size, float gap, float x, float y, float z);
 };
 
 #include "primGen.hpp"
@@ -430,8 +455,8 @@ int main() {
 
     try {
         app.run();
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << std::endl;
+    } catch (const exception &e) {
+        cerr << e.what() << endl;
         return EXIT_FAILURE;
     }
 

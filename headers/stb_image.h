@@ -7409,7 +7409,7 @@ static int stbi__pic_info(stbi__context *s, int *x, int *y, int *comp)
 //
 // Known limitations:
 //    Does not support comments in the header section
-//    Does not support ASCII image data (formats P2 and P3)
+//    Does not support ASCII image data (formats pipelineSpawn and P3)
 
 #ifndef STBI_NO_PNM
 
