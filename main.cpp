@@ -25,7 +25,7 @@ struct GlobalUniformBufferObject {
     alignas(16) vec3 lightDir;
     alignas(16) vec4 lightColor;
     alignas(16) vec3 eyePos;
-    alignas(16) float time;
+    alignas(4) float time;
 };
 
 struct Vertex {
@@ -110,7 +110,7 @@ protected:
         // Pipelines [Shader couples]
         // The last array, is a vector of pointer to the layouts of the sets that will
         // be used in this pipeline. The first element will be set 0, and so on..
-        P1.init(this, &VD, "shaders/ClassicVert.spv", "shaders/ToonFrag.spv", {&DSL1});
+        P1.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSL1});
         P1.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL,
                                VK_CULL_MODE_NONE, false);
 
@@ -262,20 +262,24 @@ protected:
         ubo.nMat = inverse(transpose(ubo.mMat));
 
         float dang = Pitch + radians(15.0f);
-        GlobalUniformBufferObject gubo{};
+
+
 
         ubo.mMat = scale(mat4(1), vec3(3));
         ubo.mvpMat = ViewPrj * ubo.mMat;
         ubo.nMat = inverse(transpose(ubo.mMat));
+
+
+        GlobalUniformBufferObject gubo{};
+        static float L_time = 0.0f;
+        L_time += deltaT;
+        gubo.time = L_time;
 
         gubo.selector = vec3(showNormal ? 0 : 1, showNormal ? 1 : 0, 0);
         // rotate lightdir in time around z
         gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
         gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
         gubo.eyePos = cameraPos;
-        static float L_time = 0.0f;
-        L_time += deltaT;
-        gubo.time = L_time;
 
 
         DS1.map(currentImage, &ubo, sizeof(ubo), 0);
