@@ -288,7 +288,7 @@ protected:
             }
         }
 
-        if (glfwGetKey(window, GLFW_KEY_P)) {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
             cout << "nuovo cubbo!\n";
             spawnCube();
         }
