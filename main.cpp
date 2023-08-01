@@ -3,7 +3,7 @@
 #include "Starter.hpp"
 #include "TextMaker.hpp"
 #include "PerlinNoise.hpp"
-#define INSTANCE_COUNT 1000
+#define INSTANCE_COUNT 5000
 
 using namespace glm;
 using namespace std;
@@ -344,7 +344,7 @@ protected:
 
     void spawnCube() {
         vec4 pos = vec4(Pos.x / 3.0f - 0.5f * sin(Yaw) * cos(Pitch), Pos.y / 3.0f - 0.5f * sin(Pitch), Pos.z / 3.0f - 0.5f * cos(Yaw) * cos(Pitch), 0);
-        positionsBuffer.pos[n] = pos;
+        positionsBuffer.pos[n % INSTANCE_COUNT] = pos;
         n++;
     }
 
