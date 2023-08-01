@@ -63,6 +63,8 @@ protected:
     int instances = 0;
 
     // Other application parameters
+    int width = 800;
+    int height = 600;
     int currScene = 0;
     float Ar{};
     mat4 ViewPrj{};
@@ -75,8 +77,8 @@ protected:
     // Here you set the main application parameters
     void setWindowParameters() override {
         // window size, titile and initial background
-        windowWidth = 800;
-        windowHeight = 600;
+        windowWidth = width;
+        windowHeight = height;
         windowTitle = "Fantastico Progetto di Morello e Piaggi";
         windowResizable = GLFW_TRUE;
         initialBackgroundColor = {180.0f / 255.0f, 255.0f / 255.0f, 255.0 / 255.0f, 1.0f};
@@ -91,6 +93,8 @@ protected:
 
     // What to do when the window changes size
     void onWindowResize(int w, int h) override {
+        width = w;
+        height = h;
         Ar = (float) w / (float) h;
     }
 
@@ -138,7 +142,7 @@ protected:
         createCubeMesh(spawn.vertices, spawn.indices, 0, size, 0, 0);
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
-        txt.init(this, &demoText);
+        txt.init(this, &demoText, width, height);
     }
 
     // Here you create your pipelines and Descriptor Sets!

@@ -52,12 +52,12 @@ struct TextMaker {
 	
 	std::vector<SingleText> *Texts;
 
-	void init(BaseProject *_BP, std::vector<SingleText> *_Texts) {
+	void init(BaseProject *_BP, std::vector<SingleText> *_Texts, int width, int height) {
 		BP = _BP;
 		Texts = _Texts;
 		createTextDescriptorSetAndVertexLayout();
 		createTextPipeline();
-		createTextModelAndTexture();
+		createTextModelAndTexture(width, height);
 	}
 
 
@@ -84,10 +84,10 @@ struct TextMaker {
 
 
 	
-	void createTextModelAndTexture() {
+	void createTextModelAndTexture(int width, int height) {
 		M.BP = BP;
 		M.VD = &VD;
-		createTextMesh();
+		createTextMesh(width, height);
 		M.createVertexBuffer();
 		M.createIndexBuffer();
 
@@ -95,7 +95,7 @@ struct TextMaker {
 	}
 	
 
-	void createTextMesh() {
+	void createTextMesh(int width, int height) {
 		int totLen = 0;
 		for(auto& Txt : *Texts) {
 			for(int i = 0; i < Txt.usedLines; i++) {
@@ -107,7 +107,7 @@ struct TextMaker {
 		M.indices.resize(6 * totLen);
 		
 		int FontId = 1;
-		
+
 		float PtoTdx = -0.95;
 		float PtoTdy = -0.95;
 		float PtoTsx = 2.0/800.0;
@@ -128,7 +128,6 @@ struct TextMaker {
 				for(int j = 0; j < strlen(Txt.l[i]); j++) {
 					int c = ((int)Txt.l[i][j]) - minChar;
 					if((c >= 0) && (c <= maxChar)) {
-//std::cout << k << " " << j << " " << i << " " << ib << " " << c << "\instances";
 						CharData d = Fonts[FontId].P[c];
 						
 						TextVertex vertex{};
