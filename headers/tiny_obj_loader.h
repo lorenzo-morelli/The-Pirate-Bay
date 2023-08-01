@@ -1574,17 +1574,17 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
             real_t cz = std::fabs(e0x * e1y - e0y * e1x);
             const real_t epsilon = std::numeric_limits<real_t>::epsilon();
             // std::cout << "cx " << cx << ", cy " << cy << ", cz " << cz <<
-            // "\n";
+            // "\instances";
             if (cx > epsilon || cy > epsilon || cz > epsilon) {
-              // std::cout << "corner\n";
+              // std::cout << "corner\instances";
               // found a corner
               if (cx > cy && cx > cz) {
-                // std::cout << "pattern0\n";
+                // std::cout << "pattern0\instances";
               } else {
-                // std::cout << "axes[0] = 0\n";
+                // std::cout << "axes[0] = 0\instances";
                 axes[0] = 0;
                 if (cz > cx && cz > cy) {
-                  // std::cout << "axes[1] = 1\n";
+                  // std::cout << "axes[1] = 1\instances";
                   axes[1] = 1;
                 }
               }
@@ -1669,7 +1669,7 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
           while (remainingFace.vertex_indices.size() > 3 &&
                  remainingIterations > 0) {
             // std::cout << "remainingIterations " << remainingIterations <<
-            // "\n";
+            // "\instances";
 
             npolys = remainingFace.vertex_indices.size();
             if (guess_vert >= npolys) {
@@ -1708,17 +1708,17 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
             real_t e1x = vx[2] - vx[1];
             real_t e1y = vy[2] - vy[1];
             real_t cross = e0x * e1y - e0y * e1x;
-            // std::cout << "axes = " << axes[0] << ", " << axes[1] << "\n";
+            // std::cout << "axes = " << axes[0] << ", " << axes[1] << "\instances";
             // std::cout << "e0x, e0y, e1x, e1y " << e0x << ", " << e0y << ", "
-            // << e1x << ", " << e1y << "\n";
+            // << e1x << ", " << e1y << "\instances";
 
             real_t area = (vx[0] * vy[1] - vy[0] * vx[1]) * static_cast<real_t>(0.5);
-            // std::cout << "cross " << cross << ", area " << area << "\n";
+            // std::cout << "cross " << cross << ", area " << area << "\instances";
             // if an internal angle
             if (cross * area < static_cast<real_t>(0.0)) {
-              // std::cout << "internal \n";
+              // std::cout << "internal \instances";
               guess_vert += 1;
-              // std::cout << "guess vert : " << guess_vert << "\n";
+              // std::cout << "guess vert : " << guess_vert << "\instances";
               continue;
             }
 
@@ -1728,7 +1728,7 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
               size_t idx = (guess_vert + otherVert) % npolys;
 
               if (idx >= remainingFace.vertex_indices.size()) {
-                // std::cout << "???0\n";
+                // std::cout << "???0\instances";
                 // ???
                 continue;
               }
@@ -1737,21 +1737,21 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
 
               if (((ovi * 3 + axes[0]) >= v.size()) ||
                   ((ovi * 3 + axes[1]) >= v.size())) {
-                // std::cout << "???1\n";
+                // std::cout << "???1\instances";
                 // ???
                 continue;
               }
               real_t tx = v[ovi * 3 + axes[0]];
               real_t ty = v[ovi * 3 + axes[1]];
               if (pnpoly(3, vx, vy, tx, ty)) {
-                // std::cout << "overlap\n";
+                // std::cout << "overlap\instances";
                 overlap = true;
                 break;
               }
             }
 
             if (overlap) {
-              // std::cout << "overlap2\n";
+              // std::cout << "overlap2\instances";
               guess_vert += 1;
               continue;
             }
@@ -1790,7 +1790,7 @@ static bool exportGroupsToShape(shape_t *shape, const PrimGroup &prim_group,
           }
 
           // std::cout << "remainingFace.vi.size = " <<
-          // remainingFace.vertex_indices.size() << "\n";
+          // remainingFace.vertex_indices.size() << "\instances";
           if (remainingFace.vertex_indices.size() == 3) {
             i0 = remainingFace.vertex_indices[0];
             i1 = remainingFace.vertex_indices[1];
@@ -1953,7 +1953,7 @@ void LoadMtl(std::map<std::string, int> *material_map,
       linebuf = linebuf.substr(0, linebuf.find_last_not_of(" \t") + 1);
     }
 
-    // Trim newline '\r\n' or '\n'
+    // Trim newline '\r\instances' or '\instances'
     if (linebuf.size() > 0) {
       if (linebuf[linebuf.size() - 1] == '\n')
         linebuf.erase(linebuf.size() - 1);
@@ -2469,7 +2469,7 @@ bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
 
     line_num++;
 
-    // Trim newline '\r\n' or '\n'
+    // Trim newline '\r\instances' or '\instances'
     if (linebuf.size() > 0) {
       if (linebuf[linebuf.size() - 1] == '\n')
         linebuf.erase(linebuf.size() - 1);
@@ -3015,7 +3015,7 @@ bool LoadObjWithCallback(std::istream &inStream, const callback_t &callback,
   while (inStream.peek() != -1) {
     safeGetline(inStream, linebuf);
 
-    // Trim newline '\r\n' or '\n'
+    // Trim newline '\r\instances' or '\instances'
     if (linebuf.size() > 0) {
       if (linebuf[linebuf.size() - 1] == '\n')
         linebuf.erase(linebuf.size() - 1);

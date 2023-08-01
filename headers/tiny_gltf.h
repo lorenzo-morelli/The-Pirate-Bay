@@ -2662,7 +2662,7 @@ bool ReadWholeFile(std::vector<unsigned char> *out, std::string *err,
                                        AASSET_MODE_STREAMING);
     if (!asset) {
       if (err) {
-        (*err) += "File open error : " + filepath + "\n";
+        (*err) += "File open error : " + filepath + "\instances";
       }
       return false;
     }
@@ -2680,7 +2680,7 @@ bool ReadWholeFile(std::vector<unsigned char> *out, std::string *err,
     return true;
   } else {
     if (err) {
-      (*err) += "No asset manager specified : " + filepath + "\n";
+      (*err) += "No asset manager specified : " + filepath + "\instances";
     }
     return false;
   }

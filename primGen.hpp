@@ -1,12 +1,12 @@
 using namespace std;
 
-void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float size, float gap, float x, float y, float z) {
+void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const {
 
-    float startX = x*(size+gap);
-    float endX = x*(size+gap) + size;
+    float startX = x*size;
+    float endX = x*size + size;
 
-    float startZ = z*(size+gap);
-    float endZ = z*(size+gap) + size;
+    float startZ = z*size;
+    float endZ = z*size + size;
 
     float startY = y - size/2;
     float endY = (size*2.0f)*y + size/2 ;
@@ -70,94 +70,10 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
 void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     int n = 500;
     for (int i = 0; i < n; i++){
-        for( int j = 0; j < n; j++){
-            int offset = (int)vDef.size();
-            float noise = Main::perlinNoise((float)i, (float)j);
-            createCubeMesh(vDef,vIdx, offset, size, 0.0f, (float)i,noise,(float)j);
+        for(int j = 0; j < n; j++){
+            int offset = (int) vDef.size();
+            float noise = Main::perlinNoise((float) i, (float) j);
+            createCubeMesh(vDef, vIdx, offset, (float) i, noise, (float) j);
         }
     }
-}
-
-void Main::createFunctionMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
-    // The surface is defined by equation y = sin(x) * cos(z) with -3 <= x <= 3 and -3 <= z <= 3
-    int res = 40;
-    for (int i = 0; i < res; i++) {
-        for (int j = 0; j < res; j++) {
-            float x = -3.0f + 6.0f * i / (float) res - 1;
-            float z = -3.0f + 6.0f * j / (float) res - 1;
-            float y = sin(x) * cos(z);
-            // derivative to calculate the normal
-            float dx = cos(x) * cos(z);
-            float dy = 1.0f;
-            float dz = -sin(z) * sin(x);
-            float len = sqrt(dx * dx + dy * dy + dz * dz);
-            dx /= len;
-            dy /= len;
-            dz /= len;
-            vDef.push_back({{x, y, z}, {dx, dy, dz}});
-        }
-    }
-    for (int i = 0; i < res - 1; i++) {
-        for (int j = 0; j < res - 1; j++) {
-            vIdx.push_back(i * res + j);
-            vIdx.push_back(i * res + j + 1);
-            vIdx.push_back((i + 1) * res + j);
-            vIdx.push_back((i + 1) * res + j);
-            vIdx.push_back(i * res + j + 1);
-            vIdx.push_back((i + 1) * res + j + 1);
-        }
-    }
-
-}
-
-const float height = 2.0f;
-void buildBase(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int n, string name, int offset) {
-    float y, y_norm;
-    if (name == "bottom") {
-        cout << "bottom" << endl;
-        y = 0.0f;
-        y_norm = -1.0f;
-    } else {
-        cout << "top" << endl;
-        y = height;
-        y_norm = 1.0f;
-    }
-    vDef.push_back({{0.0f, y, 0.0f}, {0.0f, y_norm, 0.0f}});  // center vertex
-    for (int i = 1; i <= n; i++) {
-        float x = cos(2 * M_PI * (i - 1) / n);
-        float z = sin(2 * M_PI * (i - 1) / n);
-        vDef.push_back({{x, y, z}, {0.0f, y_norm, 0.0f}});
-        if (i == n) {
-            vIdx.push_back(0 + offset); vIdx.push_back(i + offset); vIdx.push_back(1 + offset);
-        } else {
-            vIdx.push_back(0 + offset); vIdx.push_back(i + offset); vIdx.push_back(i + 1 + offset);
-        }
-    }
-}
-
-void buildSide(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx, int n, int offset) {
-    for (int i = 1; i <= 2 * n; i++) {
-        float x1 = cos(2 * M_PI * (i - 1) / n);
-        float z1 = sin(2 * M_PI * (i - 1) / n);
-        float x2 = cos(2 * M_PI * i / n);
-        float z2 = sin(2 * M_PI * i / n);
-        vDef.push_back({{x1, 0.0f, z1}, {x1, 0.0f, z1}});  // bottom 1
-        vDef.push_back({{x2, 0.0f, z2}, {x2, 0.0f, z2}});  // bottom 2
-        vDef.push_back({{x1, height, z1}, {x1, 0.0f, z1}});  // top 1
-        vDef.push_back({{x2, height, z2}, {x2, 0.0f, z2}});  // top 2
-        vIdx.push_back(i * 2 + offset); vIdx.push_back(i * 2 + 1 + offset); vIdx.push_back(i * 2 + 2 + offset);
-        vIdx.push_back(i * 2 + 1 + offset); vIdx.push_back(i * 2 + 3 + offset); vIdx.push_back(i * 2 + 2 + offset);
-
-    }
-}
-
-void Main::createCylinderMesh(std::vector<Vertex> &vDef, std::vector<uint32_t> &vIdx) {
-    // The procedure fills array vPos with the positions of the vertices and of the normal vectors of the mesh
-    // The procedures also fill the array vIdx with the indices of the vertices of the triangles
-    // The primitive built here is a cylinder, with radius 1, and height 2, centered in the origin.
-
-    int res = 40;
-    buildBase(vDef, vIdx, res, "bottom", (int) vDef.size());
-    buildBase(vDef, vIdx, res, "top", (int) vDef.size());
-    buildSide(vDef, vIdx, res, (int) vDef.size());
 }

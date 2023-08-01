@@ -2881,7 +2881,7 @@ json.exception.parse_error.113 | parse error at 2: expected a CBOR string; last 
 json.exception.parse_error.114 | parse error: Unsupported BSON record type 0x0F | The parsing of the corresponding BSON record type is not implemented (yet).
 json.exception.parse_error.115 | parse error at byte 5: syntax error while parsing UBJSON high-precision number: invalid number text: 1A | A UBJSON high-precision number could not be parsed.
 
-@note For an input with n bytes, 1 is the index of the first character and n+1
+@note For an input with instances bytes, 1 is the index of the first character and instances+1
       is the index of the terminating null byte or the end of file. This also
       holds true when reading a byte vector (CBOR or MessagePack).
 
@@ -2931,8 +2931,8 @@ class parse_error : public exception
 
     The byte index of the last read character in the input file.
 
-    @note For an input with n bytes, 1 is the index of the first character and
-          n+1 is the index of the terminating null byte or the end of file.
+    @note For an input with instances bytes, 1 is the index of the first character and
+          instances+1 is the index of the terminating null byte or the end of file.
           This also holds true when reading a byte vector (CBOR or MessagePack).
     */
     const std::size_t byte;
@@ -7102,7 +7102,7 @@ class lexer : public lexer_base<BasicJsonType>
 
                 case 0x0A:
                 {
-                    error_message = "invalid string: control character U+000A (LF) must be escaped to \\u000A or \\n";
+                    error_message = "invalid string: control character U+000A (LF) must be escaped to \\u000A or \\instances";
                     return token_type::parse_error;
                 }
 
@@ -8885,19 +8885,19 @@ class binary_reader
                 return get_number(input_format_t::cbor, number) && sax->number_integer(static_cast<number_integer_t>(-1) - number);
             }
 
-            case 0x39: // Negative integer -1-n (two-byte uint16_t follows)
+            case 0x39: // Negative integer -1-instances (two-byte uint16_t follows)
             {
                 std::uint16_t number{};
                 return get_number(input_format_t::cbor, number) && sax->number_integer(static_cast<number_integer_t>(-1) - number);
             }
 
-            case 0x3A: // Negative integer -1-n (four-byte uint32_t follows)
+            case 0x3A: // Negative integer -1-instances (four-byte uint32_t follows)
             {
                 std::uint32_t number{};
                 return get_number(input_format_t::cbor, number) && sax->number_integer(static_cast<number_integer_t>(-1) - number);
             }
 
-            case 0x3B: // Negative integer -1-n (eight-byte uint64_t follows)
+            case 0x3B: // Negative integer -1-instances (eight-byte uint64_t follows)
             {
                 std::uint64_t number{};
                 return get_number(input_format_t::cbor, number) && sax->number_integer(static_cast<number_integer_t>(-1)
@@ -8929,10 +8929,10 @@ class binary_reader
             case 0x55:
             case 0x56:
             case 0x57:
-            case 0x58: // Binary data (one-byte uint8_t for n follows)
-            case 0x59: // Binary data (two-byte uint16_t for n follow)
-            case 0x5A: // Binary data (four-byte uint32_t for n follow)
-            case 0x5B: // Binary data (eight-byte uint64_t for n follow)
+            case 0x58: // Binary data (one-byte uint8_t for instances follows)
+            case 0x59: // Binary data (two-byte uint16_t for instances follow)
+            case 0x5A: // Binary data (four-byte uint32_t for instances follow)
+            case 0x5B: // Binary data (eight-byte uint64_t for instances follow)
             case 0x5F: // Binary data (indefinite length)
             {
                 binary_t b;
@@ -8964,10 +8964,10 @@ class binary_reader
             case 0x75:
             case 0x76:
             case 0x77:
-            case 0x78: // UTF-8 string (one-byte uint8_t for n follows)
-            case 0x79: // UTF-8 string (two-byte uint16_t for n follow)
-            case 0x7A: // UTF-8 string (four-byte uint32_t for n follow)
-            case 0x7B: // UTF-8 string (eight-byte uint64_t for n follow)
+            case 0x78: // UTF-8 string (one-byte uint8_t for instances follows)
+            case 0x79: // UTF-8 string (two-byte uint16_t for instances follow)
+            case 0x7A: // UTF-8 string (four-byte uint32_t for instances follow)
+            case 0x7B: // UTF-8 string (eight-byte uint64_t for instances follow)
             case 0x7F: // UTF-8 string (indefinite length)
             {
                 string_t s;
@@ -9001,25 +9001,25 @@ class binary_reader
             case 0x97:
                 return get_cbor_array(static_cast<std::size_t>(static_cast<unsigned int>(current) & 0x1Fu), tag_handler);
 
-            case 0x98: // array (one-byte uint8_t for n follows)
+            case 0x98: // array (one-byte uint8_t for instances follows)
             {
                 std::uint8_t len{};
                 return get_number(input_format_t::cbor, len) && get_cbor_array(static_cast<std::size_t>(len), tag_handler);
             }
 
-            case 0x99: // array (two-byte uint16_t for n follow)
+            case 0x99: // array (two-byte uint16_t for instances follow)
             {
                 std::uint16_t len{};
                 return get_number(input_format_t::cbor, len) && get_cbor_array(static_cast<std::size_t>(len), tag_handler);
             }
 
-            case 0x9A: // array (four-byte uint32_t for n follow)
+            case 0x9A: // array (four-byte uint32_t for instances follow)
             {
                 std::uint32_t len{};
                 return get_number(input_format_t::cbor, len) && get_cbor_array(static_cast<std::size_t>(len), tag_handler);
             }
 
-            case 0x9B: // array (eight-byte uint64_t for n follow)
+            case 0x9B: // array (eight-byte uint64_t for instances follow)
             {
                 std::uint64_t len{};
                 return get_number(input_format_t::cbor, len) && get_cbor_array(detail::conditional_static_cast<std::size_t>(len), tag_handler);
@@ -9055,25 +9055,25 @@ class binary_reader
             case 0xB7:
                 return get_cbor_object(static_cast<std::size_t>(static_cast<unsigned int>(current) & 0x1Fu), tag_handler);
 
-            case 0xB8: // map (one-byte uint8_t for n follows)
+            case 0xB8: // map (one-byte uint8_t for instances follows)
             {
                 std::uint8_t len{};
                 return get_number(input_format_t::cbor, len) && get_cbor_object(static_cast<std::size_t>(len), tag_handler);
             }
 
-            case 0xB9: // map (two-byte uint16_t for n follow)
+            case 0xB9: // map (two-byte uint16_t for instances follow)
             {
                 std::uint16_t len{};
                 return get_number(input_format_t::cbor, len) && get_cbor_object(static_cast<std::size_t>(len), tag_handler);
             }
 
-            case 0xBA: // map (four-byte uint32_t for n follow)
+            case 0xBA: // map (four-byte uint32_t for instances follow)
             {
                 std::uint32_t len{};
                 return get_number(input_format_t::cbor, len) && get_cbor_object(static_cast<std::size_t>(len), tag_handler);
             }
 
-            case 0xBB: // map (eight-byte uint64_t for n follow)
+            case 0xBB: // map (eight-byte uint64_t for instances follow)
             {
                 std::uint64_t len{};
                 return get_number(input_format_t::cbor, len) && get_cbor_object(detail::conditional_static_cast<std::size_t>(len), tag_handler);
@@ -9318,25 +9318,25 @@ class binary_reader
                 return get_string(input_format_t::cbor, static_cast<unsigned int>(current) & 0x1Fu, result);
             }
 
-            case 0x78: // UTF-8 string (one-byte uint8_t for n follows)
+            case 0x78: // UTF-8 string (one-byte uint8_t for instances follows)
             {
                 std::uint8_t len{};
                 return get_number(input_format_t::cbor, len) && get_string(input_format_t::cbor, len, result);
             }
 
-            case 0x79: // UTF-8 string (two-byte uint16_t for n follow)
+            case 0x79: // UTF-8 string (two-byte uint16_t for instances follow)
             {
                 std::uint16_t len{};
                 return get_number(input_format_t::cbor, len) && get_string(input_format_t::cbor, len, result);
             }
 
-            case 0x7A: // UTF-8 string (four-byte uint32_t for n follow)
+            case 0x7A: // UTF-8 string (four-byte uint32_t for instances follow)
             {
                 std::uint32_t len{};
                 return get_number(input_format_t::cbor, len) && get_string(input_format_t::cbor, len, result);
             }
 
-            case 0x7B: // UTF-8 string (eight-byte uint64_t for n follow)
+            case 0x7B: // UTF-8 string (eight-byte uint64_t for instances follow)
             {
                 std::uint64_t len{};
                 return get_number(input_format_t::cbor, len) && get_string(input_format_t::cbor, len, result);
@@ -9413,28 +9413,28 @@ class binary_reader
                 return get_binary(input_format_t::cbor, static_cast<unsigned int>(current) & 0x1Fu, result);
             }
 
-            case 0x58: // Binary data (one-byte uint8_t for n follows)
+            case 0x58: // Binary data (one-byte uint8_t for instances follows)
             {
                 std::uint8_t len{};
                 return get_number(input_format_t::cbor, len) &&
                        get_binary(input_format_t::cbor, len, result);
             }
 
-            case 0x59: // Binary data (two-byte uint16_t for n follow)
+            case 0x59: // Binary data (two-byte uint16_t for instances follow)
             {
                 std::uint16_t len{};
                 return get_number(input_format_t::cbor, len) &&
                        get_binary(input_format_t::cbor, len, result);
             }
 
-            case 0x5A: // Binary data (four-byte uint32_t for n follow)
+            case 0x5A: // Binary data (four-byte uint32_t for instances follow)
             {
                 std::uint32_t len{};
                 return get_number(input_format_t::cbor, len) &&
                        get_binary(input_format_t::cbor, len, result);
             }
 
-            case 0x5B: // Binary data (eight-byte uint64_t for n follow)
+            case 0x5B: // Binary data (eight-byte uint64_t for instances follow)
             {
                 std::uint64_t len{};
                 return get_number(input_format_t::cbor, len) &&
@@ -15197,7 +15197,7 @@ class binary_writer
 
     /*
     @brief write a number to output input
-    @param[in] n number of type @a NumberType
+    @param[in] instances number of type @a NumberType
     @tparam NumberType the type of the number
     @tparam OutputIsLittleEndian Set to true if output data is
                                  required to be little endian
@@ -15800,8 +15800,8 @@ inline cached_power get_cached_power_for_binary_exponent(int e)
 }
 
 /*!
-For n != 0, returns k, such that pow10 := 10^(k-1) <= n < 10^k.
-For n == 0, returns 1 and sets pow10 := 1.
+For instances != 0, returns k, such that pow10 := 10^(k-1) <= instances < 10^k.
+For instances == 0, returns 1 and sets pow10 := 1.
 */
 inline int find_largest_pow10(const std::uint32_t n, std::uint32_t& pow10)
 {
@@ -15936,7 +15936,7 @@ inline void grisu2_digit_gen(char* buffer, int& length, int& decimal_exponent,
 
     // 1)
     //
-    // Generate the digits of the integral part p1 = d[n-1]...d[1]d[0]
+    // Generate the digits of the integral part p1 = d[instances-1]...d[1]d[0]
 
     JSON_ASSERT(p1 > 0);
 
@@ -15953,37 +15953,37 @@ inline void grisu2_digit_gen(char* buffer, int& length, int& decimal_exponent,
     //         = d[k-1] * 10^(k-1) + ((p1 mod 10^(k-1)) * 2^-e + p2) * 2^e
     //         = d[k-1] * 10^(k-1) + (                         rest) * 2^e
     //
-    // Now generate the digits d[n] of p1 from left to right (n = k-1,...,0)
+    // Now generate the digits d[instances] of p1 from left to right (instances = k-1,...,0)
     //
-    //      p1 = d[k-1]...d[n] * 10^n + d[n-1]...d[0]
+    //      p1 = d[k-1]...d[instances] * 10^instances + d[instances-1]...d[0]
     //
     // but stop as soon as
     //
-    //      rest * 2^e = (d[n-1]...d[0] * 2^-e + p2) * 2^e <= delta * 2^e
+    //      rest * 2^e = (d[instances-1]...d[0] * 2^-e + p2) * 2^e <= delta * 2^e
 
     int n = k;
     while (n > 0)
     {
         // Invariants:
-        //      M+ = buffer * 10^n + (p1 + p2 * 2^e)    (buffer = 0 for n = k)
-        //      pow10 = 10^(n-1) <= p1 < 10^n
+        //      M+ = buffer * 10^instances + (p1 + p2 * 2^e)    (buffer = 0 for instances = k)
+        //      pow10 = 10^(instances-1) <= p1 < 10^instances
         //
-        const std::uint32_t d = p1 / pow10;  // d = p1 div 10^(n-1)
-        const std::uint32_t r = p1 % pow10;  // r = p1 mod 10^(n-1)
+        const std::uint32_t d = p1 / pow10;  // d = p1 div 10^(instances-1)
+        const std::uint32_t r = p1 % pow10;  // r = p1 mod 10^(instances-1)
         //
-        //      M+ = buffer * 10^n + (d * 10^(n-1) + r) + p2 * 2^e
-        //         = (buffer * 10 + d) * 10^(n-1) + (r + p2 * 2^e)
+        //      M+ = buffer * 10^instances + (d * 10^(instances-1) + r) + p2 * 2^e
+        //         = (buffer * 10 + d) * 10^(instances-1) + (r + p2 * 2^e)
         //
         JSON_ASSERT(d <= 9);
         buffer[length++] = static_cast<char>('0' + d); // buffer := buffer * 10 + d
         //
-        //      M+ = buffer * 10^(n-1) + (r + p2 * 2^e)
+        //      M+ = buffer * 10^(instances-1) + (r + p2 * 2^e)
         //
         p1 = r;
         n--;
         //
-        //      M+ = buffer * 10^n + (p1 + p2 * 2^e)
-        //      pow10 = 10^n
+        //      M+ = buffer * 10^instances + (p1 + p2 * 2^e)
+        //      pow10 = 10^instances
         //
 
         // Now check if enough digits have been generated.
@@ -15997,18 +15997,18 @@ inline void grisu2_digit_gen(char* buffer, int& length, int& decimal_exponent,
         const std::uint64_t rest = (std::uint64_t{p1} << -one.e) + p2;
         if (rest <= delta)
         {
-            // V = buffer * 10^n, with M- <= V <= M+.
+            // V = buffer * 10^instances, with M- <= V <= M+.
 
             decimal_exponent += n;
 
             // We may now just stop. But instead look if the buffer could be
             // decremented to bring V closer to w.
             //
-            // pow10 = 10^n is now 1 ulp in the decimal representation V.
+            // pow10 = 10^instances is now 1 ulp in the decimal representation V.
             // The rounding procedure works with diyfp's with an implicit
             // exponent of e.
             //
-            //      10^n = (10^n * 2^-e) * 2^e = ulp * 2^e
+            //      10^instances = (10^instances * 2^-e) * 2^e = ulp * 2^e
             //
             const std::uint64_t ten_n = std::uint64_t{pow10} << -one.e;
             grisu2_round(buffer, length, dist, delta, rest, ten_n);
@@ -16018,7 +16018,7 @@ inline void grisu2_digit_gen(char* buffer, int& length, int& decimal_exponent,
 
         pow10 /= 10;
         //
-        //      pow10 = 10^(n-1) <= p1 < 10^n
+        //      pow10 = 10^(instances-1) <= p1 < 10^instances
         // Invariants restored.
     }
 
@@ -16300,9 +16300,9 @@ inline char* format_buffer(char* buf, int len, int decimal_exponent,
     const int k = len;
     const int n = len + decimal_exponent;
 
-    // v = buf * 10^(n-k)
+    // v = buf * 10^(instances-k)
     // k is the length of the buffer (number of decimal digits)
-    // n is the position of the decimal point relative to the start of the buffer.
+    // instances is the position of the decimal point relative to the start of the buffer.
 
     if (k <= n && n <= max_exp)
     {
@@ -16544,7 +16544,7 @@ class serializer
                         indent_string.resize(indent_string.size() * 2, ' ');
                     }
 
-                    // first n-1 elements
+                    // first instances-1 elements
                     auto i = val.m_value.object->cbegin();
                     for (std::size_t cnt = 0; cnt < val.m_value.object->size() - 1; ++cnt, ++i)
                     {
@@ -16573,7 +16573,7 @@ class serializer
                 {
                     o->write_character('{');
 
-                    // first n-1 elements
+                    // first instances-1 elements
                     auto i = val.m_value.object->cbegin();
                     for (std::size_t cnt = 0; cnt < val.m_value.object->size() - 1; ++cnt, ++i)
                     {
@@ -16617,7 +16617,7 @@ class serializer
                         indent_string.resize(indent_string.size() * 2, ' ');
                     }
 
-                    // first n-1 elements
+                    // first instances-1 elements
                     for (auto i = val.m_value.array->cbegin();
                             i != val.m_value.array->cend() - 1; ++i)
                     {
@@ -16639,7 +16639,7 @@ class serializer
                 {
                     o->write_character('[');
 
-                    // first n-1 elements
+                    // first instances-1 elements
                     for (auto i = val.m_value.array->cbegin();
                             i != val.m_value.array->cend() - 1; ++i)
                     {

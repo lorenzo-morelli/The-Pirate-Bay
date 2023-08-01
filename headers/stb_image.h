@@ -134,12 +134,12 @@ RECENT REVISION HISTORY:
 //    - GIF always returns *comp=4
 //
 // Basic usage (see HDR discussion below for HDR usage):
-//    int x,y,n;
-//    unsigned char *data = stbi_load(filename, &x, &y, &n, 0);
+//    int x,y,instances;
+//    unsigned char *data = stbi_load(filename, &x, &y, &instances, 0);
 //    // ... process data if not NULL ...
-//    // ... x = width, y = height, n = # 8-bit components per pixel ...
+//    // ... x = width, y = height, instances = # 8-bit components per pixel ...
 //    // ... replace '0' with '1'..'4' to force that many components per pixel
-//    // ... but 'n' will always be the number that it would have been if you said 0
+//    // ... but 'instances' will always be the number that it would have been if you said 0
 //    stbi_image_free(data)
 //
 // Standard parameters:
@@ -182,9 +182,9 @@ RECENT REVISION HISTORY:
 // To query the width, height and component count of an image without having to
 // decode the full file, you can use the stbi_info family of functions:
 //
-//   int x,y,n,ok;
-//   ok = stbi_info(filename, &x, &y, &n);
-//   // returns ok=1 and sets x, y, n if image is a supported format,
+//   int x,y,instances,ok;
+//   ok = stbi_info(filename, &x, &y, &instances);
+//   // returns ok=1 and sets x, y, instances if image is a supported format,
 //   // 0 otherwise.
 //
 // Note that stb_image pervasively uses ints in its public API for sizes,
@@ -290,7 +290,7 @@ RECENT REVISION HISTORY:
 // Additionally, there is a new, parallel interface for loading files as
 // (linear) floats to preserve the full dynamic range:
 //
-//    float *data = stbi_loadf(filename, &x, &y, &n, 0);
+//    float *data = stbi_loadf(filename, &x, &y, &instances, 0);
 //
 // If you load LDR images through this interface, those images will
 // be promoted to floating point values, run through the inverse of
@@ -408,7 +408,7 @@ extern "C" {
 typedef struct
 {
    int      (*read)  (void *user,char *data,int size);   // fill 'data' with 'size' bytes.  return number of bytes actually read
-   void     (*skip)  (void *user,int n);                 // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
+   void     (*skip)  (void *user,int n);                 // skip the next 'instances' bytes, or 'unget' the last -instances bytes if negative
    int      (*eof)   (void *user);                       // returns nonzero if we are at end of file/data
 } stbi_io_callbacks;
 
@@ -2067,7 +2067,7 @@ static void stbi__grow_buffer_unsafe(stbi__jpeg *j)
    } while (j->code_bits <= 24);
 }
 
-// (1 << n) - 1
+// (1 << instances) - 1
 static const stbi__uint32 stbi__bmask[17]={0,1,3,7,15,31,63,127,255,511,1023,2047,4095,8191,16383,32767,65535};
 
 // decode a jpeg huffman value from the bitstream
@@ -2120,7 +2120,7 @@ stbi_inline static int stbi__jpeg_huff_decode(stbi__jpeg *j, stbi__huffman *h)
    return h->values[c];
 }
 
-// bias[n] = (-1<<n) + 1
+// bias[instances] = (-1<<instances) + 1
 static const int stbi__jbias[16] = {0,-1,-3,-7,-15,-31,-63,-127,-255,-511,-1023,-2047,-4095,-8191,-16383,-32767};
 
 // combined JPEG 'receive' and JPEG 'extend', since baseline
@@ -3924,7 +3924,7 @@ static stbi_uc *load_jpeg_image(stbi__jpeg *z, int *out_x, int *out_y, int *comp
             } else
                for (i=0; i < z->s->img_x; ++i) {
                   out[0] = out[1] = out[2] = y[i];
-                  out[3] = 255; // not used if n==3
+                  out[3] = 255; // not used if instances==3
                   out += n;
                }
          } else {
@@ -4059,7 +4059,7 @@ stbi_inline static int stbi__bitreverse16(int n)
 stbi_inline static int stbi__bit_reverse(int v, int bits)
 {
    STBI_ASSERT(bits <= 16);
-   // to bit reverse n bits, reverse 16 and shift
+   // to bit reverse instances bits, reverse 16 and shift
    // e.g. 11 bits, bit reverse and shift away 5
    return stbi__bitreverse16(v) >> (16-bits);
 }
@@ -4201,7 +4201,7 @@ stbi_inline static int stbi__zhuffman_decode(stbi__zbuf *a, stbi__zhuffman *z)
    return stbi__zhuffman_decode_slowpath(a, z);
 }
 
-static int stbi__zexpand(stbi__zbuf *z, char *zout, int n)  // need to make room for n bytes
+static int stbi__zexpand(stbi__zbuf *z, char *zout, int n)  // need to make room for instances bytes
 {
    char *q;
    unsigned int cur, limit, old_limit;
@@ -6135,10 +6135,10 @@ static void *stbi__psd_load(stbi__context *s, int *x, int *y, int *comp, int req
    if (compression) {
       // RLE as used by .PSD and .TIFF
       // Loop until you get the number of unpacked bytes you are expecting:
-      //     Read the next source byte into n.
-      //     If n is between 0 and 127 inclusive, copy the next n+1 bytes literally.
-      //     Else if n is between -127 and -1 inclusive, copy the next byte -n+1 times.
-      //     Else if n is 128, noop.
+      //     Read the next source byte into instances.
+      //     If instances is between 0 and 127 inclusive, copy the next instances+1 bytes literally.
+      //     Else if instances is between -127 and -1 inclusive, copy the next byte -instances+1 times.
+      //     Else if instances is 128, noop.
       // Endloop
 
       // The RLE-compressed data is preceded by a 2-byte data count for each row in the data,
