@@ -3,6 +3,7 @@
 #include "Starter.hpp"
 #include "TextMaker.hpp"
 #include "PerlinNoise.hpp"
+#define INSTANCE_COUNT 1000
 
 using namespace glm;
 using namespace std;
@@ -33,6 +34,11 @@ struct Vertex {
     vec3 pos;
     vec3 norm;
 };
+
+struct PositionsBuffer {
+    alignas(16) vec4 pos[INSTANCE_COUNT];
+    alignas(16) vec4 color[INSTANCE_COUNT];
+} positionsBuffer;
 
 class Main;
 
@@ -105,7 +111,8 @@ protected:
                 // second element : the type of element (buffer or texture)
                 // third  element : the pipeline stage where it will be used
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+                {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
         });
 
         // Vertex descriptors
@@ -122,13 +129,13 @@ protected:
         // The last array, is a vector of pointer to the layouts of the sets that will
         // be used in this pipeline. The first element will be set 0, and so on..
         pipelineIsland.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLIsland});
-        pipelineSpawn.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
+        pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
-        createCubeMesh(spawn.vertices, spawn.indices, 0, 3, 0, 1, 10, 1);
+        createCubeMesh(spawn.vertices, spawn.indices, 0, size, 0, 0, 0, 0);
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
 
@@ -154,7 +161,8 @@ protected:
         });
         DSSpawn.init(this, &DSLSpawn, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
-                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+                {2, UNIFORM, sizeof(PositionsBuffer),      nullptr}
         });
         txt.pipelinesAndDescriptorSetsInit();
     }
@@ -208,7 +216,7 @@ protected:
                 vkCmdDrawIndexed(
                         commandBuffer,
                         static_cast<uint32_t>(spawn.indices.size()),
-                        1,
+                        INSTANCE_COUNT,
                         0,
                         0,
                         0
@@ -280,6 +288,11 @@ protected:
             }
         }
 
+        if (glfwGetKey(window, GLFW_KEY_P)) {
+            cout << "nuovo cubbo!\n";
+            spawnCube();
+        }
+
         if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
             glfwSetWindowShouldClose(window, GL_TRUE);
         }
@@ -323,9 +336,17 @@ protected:
         DSIsland.map(currentImage, &gubo, sizeof(gubo), 1);
         DSSpawn.map(currentImage, &ubo, sizeof(ubo), 0);
         DSSpawn.map(currentImage, &gubo, sizeof(gubo), 1);
+        DSSpawn.map(currentImage, &positionsBuffer, sizeof(positionsBuffer), 2);
     }
 
     float size = 0.025f;
+    int n = 0;
+
+    void spawnCube() {
+        vec4 pos = vec4(Pos.x / 3.0f, Pos.y / 3.0f, Pos.z / 3.0f, 0);
+        positionsBuffer.pos[n] = pos;
+        n++;
+    }
 
     float perlinNoise(float i, float j) {
         const siv::PerlinNoise::seed_type seed = 123456u;
