@@ -10,7 +10,7 @@ using namespace std;
 
 
 vector<SingleText> demoText = {
-        {1, {"Cube",     "", "", ""}, 0, 0},
+        {1, {"·",     "", "", ""}, 0, 0},
         {1, {"Surface",  "", "", ""}, 0, 0},
         {1, {"Cylinder", "", "", ""}, 0, 0}
 };
@@ -343,7 +343,7 @@ protected:
     int n = 0;
 
     void spawnCube() {
-        vec4 pos = vec4(Pos.x / 3.0f, Pos.y / 3.0f, Pos.z / 3.0f, 0);
+        vec4 pos = vec4(Pos.x / 3.0f - 0.5f * sin(Yaw) * cos(Pitch), Pos.y / 3.0f - 0.5f * sin(Pitch), Pos.z / 3.0f - 0.5f * cos(Yaw) * cos(Pitch), 0);
         positionsBuffer.pos[n] = pos;
         n++;
     }
