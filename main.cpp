@@ -11,8 +11,8 @@ using namespace std;
 
 vector<SingleText> demoText = {
         {1, {"+",        "", "", ""}, 0, 0},
-        {1, {"Surface",  "", "", ""}, 0, 0},
-        {1, {"Cylinder", "", "", ""}, 0, 0}
+        {1, {"+",  "", "", ""}, 0, 0},
+        {1, {"+", "", "", ""}, 0, 0}
 };
 
 // The uniform buffer object used in this example
