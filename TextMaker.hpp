@@ -108,10 +108,11 @@ struct TextMaker {
 		
 		int FontId = 1;
 
-		float PtoTdx = -0.95;
-		float PtoTdy = -0.95;
-		float PtoTsx = 2.0/800.0;
-		float PtoTsy = 2.0/600.0;
+		float PtoTdx = 0.0;
+		float PtoTdy = 0.0;
+        //TODO: it doesn't scale!!
+		float PtoTsx = 2.0/width; // size x
+		float PtoTsy = 2.0/height; // size y
 		
 		int minChar = 32;
 		int maxChar = 127;
