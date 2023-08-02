@@ -10,8 +10,8 @@ using namespace glm;
 using namespace std;
 
 vector<SingleText> demoText = {
-        {1, {"+",        "", "", ""}, 0, 0},
-        {1, {"+",  "", "", ""}, 0, 0},
+        {1, {"+", "", "", ""}, 0, 0},
+        {1, {"+", "", "", ""}, 0, 0},
         {1, {"+", "", "", ""}, 0, 0}
 };
 
@@ -64,8 +64,6 @@ protected:
     float size = 0.025f;
     int instances = 0;
     float spot = 0;
-    float sunX = 0.0f;
-    float sunY = 1.0f;
 
     // Other application parameters
     int width = 800;
@@ -146,7 +144,7 @@ protected:
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
         createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0);
-        createCubeMesh(sun.vertices, sun.indices, 0, sunX, sunY, 0);
+        createCubeMesh(sun.vertices, sun.indices, 0, 0, 0, 0);
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
         sun.initMesh(this, &VD);
@@ -200,74 +198,38 @@ protected:
     // You send to the GPU all the objects you want to draw,
     // with their buffers and textures
     void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) override {
-        switch (currScene) {
-            case 0:
-                pipelineIsland.bind(commandBuffer);
-                island.bind(commandBuffer);
-                DSIsland.bind(commandBuffer, pipelineIsland, currentImage);
-                vkCmdDrawIndexed(
-                        commandBuffer,
-                        static_cast<uint32_t>(island.indices.size()),
-                        1,
-                        0,
-                        0,
-                        0
-                );
-                sun.bind(commandBuffer);
-                vkCmdDrawIndexed(
-                        commandBuffer,
-                        static_cast<uint32_t>(sun.indices.size()),
-                        1,
-                        0,
-                        0,
-                        0
-                );
-                pipelineSpawn.bind(commandBuffer);
-                spawn.bind(commandBuffer);
-                DSSpawn.bind(commandBuffer, pipelineSpawn, currentImage);
-                vkCmdDrawIndexed(
-                        commandBuffer,
-                        static_cast<uint32_t>(spawn.indices.size()),
-                        INSTANCE_MAX,
-                        0,
-                        0,
-                        0
-                );
-                break;
-            case 1:
-                island.bind(commandBuffer);
-                vkCmdDrawIndexed(
-                        commandBuffer,
-                        static_cast<uint32_t>(island.indices.size()),
-                        1,
-                        0,
-                        0,
-                        0
-                );
-                sun.bind(commandBuffer);
-                vkCmdDrawIndexed(
-                        commandBuffer,
-                        static_cast<uint32_t>(sun.indices.size()),
-                        1,
-                        0,
-                        0,
-                        0
-                );
-                pipelineSpawn.bind(commandBuffer);
-                spawn.bind(commandBuffer);
-                DSSpawn.bind(commandBuffer, pipelineSpawn, currentImage);
-                vkCmdDrawIndexed(
-                        commandBuffer,
-                        static_cast<uint32_t>(spawn.indices.size()),
-                        INSTANCE_MAX,
-                        0,
-                        0,
-                        0
-                );
-                break;
-            default:
-                break;
-        }
+        pipelineIsland.bind(commandBuffer);
+        island.bind(commandBuffer);
+        DSIsland.bind(commandBuffer, pipelineIsland, currentImage);
+        vkCmdDrawIndexed(
+                commandBuffer,
+                static_cast<uint32_t>(island.indices.size()),
+                1,
+                0,
+                0,
+                0
+        );
+        sun.bind(commandBuffer);
+        vkCmdDrawIndexed(
+                commandBuffer,
+                static_cast<uint32_t>(sun.indices.size()),
+                1,
+                0,
+                0,
+                0
+        );
+        pipelineSpawn.bind(commandBuffer);
+        spawn.bind(commandBuffer);
+        DSSpawn.bind(commandBuffer, pipelineSpawn, currentImage);
+        vkCmdDrawIndexed(
+                commandBuffer,
+                static_cast<uint32_t>(spawn.indices.size()),
+                INSTANCE_MAX,
+                0,
+                0,
+                0
+        );
+
         txt.populateCommandBuffer(commandBuffer, currentImage, currScene);
     }
 
@@ -276,19 +238,15 @@ protected:
     void updateUniformBuffer(uint32_t currentImage) override {
         GlobalUniformBufferObject gubo{};
         gubo.spot.x = spot;
-        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS) {
-            if (spot == 0) spot = 1;
-            else spot = 0;
-        }
+        if (glfwGetKey(window, GLFW_KEY_N)) spot == 0 ? spot = 1 : spot = 0;
 
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
             cout << "nuovo cubbo!\n";
             spawnCube();
         }
 
-        if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
-            glfwSetWindowShouldClose(window, GL_TRUE);
-        }
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, GL_TRUE);
+
         float deltaT;
         vec3 m = vec3(0.0f), r = vec3(0.0f);
         bool fire = false;
@@ -297,23 +255,12 @@ protected:
         gamePhysics(deltaT, m);
 
         UniformBufferObject ubo{};
-        // Here is where you actually update your uniforms
-
-        // updates global uniforms
-        //TODO: ?????
-        ubo.mMat = mat4(1);
-        ubo.mvpMat = ViewPrj;
-        ubo.nMat = inverse(transpose(ubo.mMat));
-
 
         ubo.mMat = scale(mat4(1), vec3(3));
         ubo.mvpMat = ViewPrj * ubo.mMat;
         ubo.nMat = inverse(transpose(ubo.mMat));
 
-
-
-
-        switch((int) gubo.spot.x) {
+        switch ((int) gubo.spot.x) {
             case 0: {
                 gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
                 gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -339,18 +286,12 @@ protected:
         static float L_time = 0.0f;
         L_time += deltaT;
         gubo.time = L_time;
-        sunMovement(L_time);
 
         DSIsland.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSIsland.map((int) currentImage, &gubo, sizeof(gubo), 1);
         DSSpawn.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSpawn.map((int) currentImage, &gubo, sizeof(gubo), 1);
         DSSpawn.map((int) currentImage, &positionsBuffer, sizeof(positionsBuffer), 2);
-    }
-
-    void sunMovement(float time) {
-        sunX = 3 * sin(time);
-        sunY = 3 * cos(time);
     }
 
     void spawnCube() {
