@@ -8,6 +8,8 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
 } ubo;
 
 layout(set = 0, binding = 1) uniform GlobalUniformBufferObject {
+	vec3 spot;
+	vec3 lightPos;
 	vec3 lightDir;
 	vec3 lightColor;
 	vec3 eyePos;
