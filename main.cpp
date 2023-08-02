@@ -29,6 +29,13 @@ struct GlobalUniformBufferObject {
     alignas(4) float time;
 };
 
+struct GlobalUniformBufferObject3 {
+    alignas(16) glm::vec3 lightPos;
+    alignas(16) glm::vec3 lightDir;
+    alignas(16) glm::vec4 lightColor;
+    alignas(16) glm::vec3 eyePos;
+};
+
 struct Vertex {
     vec3 pos;
     vec3 norm;
@@ -46,21 +53,24 @@ protected:
     // Here you list all the Vulkan objects you need:
 
     // Descriptor Layouts [what will be passed to the shaders]
-    DescriptorSetLayout DSLIsland{}, DSLSpawn{};
+    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSL3{};
 
     // Pipelines [Shader couples]
     VertexDescriptor VD;
-    Pipeline pipelineIsland;
-    Pipeline pipelineSpawn;
+    Pipeline pipelineIsland, pipelineSpawn, P3;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
-    Model<Vertex> island, spawn;
-    DescriptorSet DSIsland, DSSpawn;
+    Model<Vertex> island, spawn, sun;
+    DescriptorSet DSIsland, DSSpawn, DS3;
+
 
     TextMaker txt;
 
     float size = 0.025f;
     int instances = 0;
+
+    float sunX = 0.0f;
+    float sunY = 1.0f;
 
     // Other application parameters
     int width = 800;
@@ -121,6 +131,15 @@ protected:
                 {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
         });
 
+        DSL3.init(this, {
+                // this array contains the binding:
+                // first  element : the binding number
+                // second element : the type of element (buffer or texture)
+                // third  element : the pipeline stage where it will be used
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+        });
+
         // Vertex descriptors
         VD.init(
                 this,
@@ -134,14 +153,19 @@ protected:
         // be used in this pipeline. The first element will be set 0, and so on...
         pipelineIsland.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLIsland});
         pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
+        P3.init(this, &VD, "shaders/PhongSpotVert.spv", "shaders/ToonSpotFrag.spv", {&DSL3});
+
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+        P3.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
-        createCubeMesh(spawn.vertices, spawn.indices, 0, size, 0, 0);
+        createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0);
+        createCubeMesh(sun.vertices, sun.indices, 0, sunX, sunY, 0);
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
+        sun.initMesh(this, &VD);
         txt.init(this, &demoText, width, height);
     }
 
@@ -150,6 +174,7 @@ protected:
         // This creates a new pipeline (with the current surface), using its shaders
         pipelineIsland.create();
         pipelineSpawn.create();
+        P3.create();
 
         DSIsland.init(this, &DSLIsland, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
@@ -160,6 +185,10 @@ protected:
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
                 {2, UNIFORM, sizeof(PositionsBuffer),           nullptr}
         });
+        DS3.init(this, &DSLIsland, {
+                {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject3), nullptr}
+        });
         txt.pipelinesAndDescriptorSetsInit();
     }
 
@@ -167,8 +196,10 @@ protected:
     void pipelinesAndDescriptorSetsCleanup() override {
         pipelineIsland.cleanup();
         pipelineSpawn.cleanup();
+        P3.cleanup();
         DSIsland.cleanup();
         DSSpawn.cleanup();
+        DS3.cleanup();
         txt.pipelinesAndDescriptorSetsCleanup();
     }
 
@@ -177,12 +208,15 @@ protected:
     void localCleanup() override {
         island.cleanup();
         spawn.cleanup();
+        sun.cleanup();
 
         DSLIsland.cleanup();
         DSLSpawn.cleanup();
+        DSL3.cleanup();
 
         pipelineIsland.destroy();
         pipelineSpawn.destroy();
+        P3.destroy();
 
         txt.localCleanup();
     }
@@ -196,6 +230,39 @@ protected:
                 pipelineIsland.bind(commandBuffer);
                 island.bind(commandBuffer);
                 DSIsland.bind(commandBuffer, pipelineIsland, currentImage);
+                vkCmdDrawIndexed(
+                        commandBuffer,
+                        static_cast<uint32_t>(island.indices.size()),
+                        1,
+                        0,
+                        0,
+                        0
+                );
+                sun.bind(commandBuffer);
+                vkCmdDrawIndexed(
+                        commandBuffer,
+                        static_cast<uint32_t>(sun.indices.size()),
+                        1,
+                        0,
+                        0,
+                        0
+                );
+                pipelineSpawn.bind(commandBuffer);
+                spawn.bind(commandBuffer);
+                DSSpawn.bind(commandBuffer, pipelineSpawn, currentImage);
+                vkCmdDrawIndexed(
+                        commandBuffer,
+                        static_cast<uint32_t>(spawn.indices.size()),
+                        INSTANCE_MAX,
+                        0,
+                        0,
+                        0
+                );
+                break;
+            case 1:
+                P3.bind(commandBuffer);
+                island.bind(commandBuffer);
+                DS3.bind(commandBuffer, P3, currentImage);
                 vkCmdDrawIndexed(
                         commandBuffer,
                         static_cast<uint32_t>(island.indices.size()),
@@ -234,7 +301,6 @@ protected:
                 button = GLFW_KEY_N;
                 currScene = (currScene + 1) % 3;
                 cout << "Scene : " << currScene << "\n";
-//				Pos = vec3(0,0,currScene == 0 ? 10 : 8);
                 RebuildPipeline();
             }
         } else {
@@ -259,37 +325,58 @@ protected:
         gameLogic(deltaT, r);
         gamePhysics(deltaT, m);
 
-
         UniformBufferObject ubo{};
         // Here is where you actually update your uniforms
 
         // updates global uniforms
+        //TODO: ?????
         ubo.mMat = mat4(1);
         ubo.mvpMat = ViewPrj;
         ubo.nMat = inverse(transpose(ubo.mMat));
-
-        //float dang = Pitch + radians(15.0f);
 
 
         ubo.mMat = scale(mat4(1), vec3(3));
         ubo.mvpMat = ViewPrj * ubo.mMat;
         ubo.nMat = inverse(transpose(ubo.mMat));
 
-        GlobalUniformBufferObject gubo{};
-        static float L_time = 0.0f;
-        L_time += deltaT;
-        gubo.time = L_time;
+        switch(currScene) {
+            case 0: {
+                GlobalUniformBufferObject gubo{};
+                gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
+                gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+                gubo.eyePos = cameraPos;
 
-        // rotate lightdir in time around z
-        gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
-        gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        gubo.eyePos = cameraPos;
+                static float L_time = 0.0f;
+                L_time += deltaT;
+                gubo.time = L_time;
+                sunMovement(L_time);
+                DSIsland.map((int) currentImage, &ubo, sizeof(ubo), 0);
+                DSIsland.map((int) currentImage, &gubo, sizeof(gubo), 1);
+                DSSpawn.map((int) currentImage, &ubo, sizeof(ubo), 0);
+                DSSpawn.map((int) currentImage, &gubo, sizeof(gubo), 1);
+                DSSpawn.map((int) currentImage, &positionsBuffer, sizeof(positionsBuffer), 2);
+                break;
+            }
+            case 1: {
+                float dang = Pitch + glm::radians(15.0f);
+                GlobalUniformBufferObject3 gubo3{};
+                gubo3.lightPos = Pos + glm::vec3(0, 1, 0);
+                gubo3.lightDir = glm::vec3(cos(dang) * sin(Yaw), sin(dang), cos(dang) * cos(Yaw));
+                gubo3.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+                gubo3.eyePos = cameraPos;
 
-        DSIsland.map((int) currentImage, &ubo, sizeof(ubo), 0);
-        DSIsland.map((int) currentImage, &gubo, sizeof(gubo), 1);
-        DSSpawn.map((int) currentImage, &ubo, sizeof(ubo), 0);
-        DSSpawn.map((int) currentImage, &gubo, sizeof(gubo), 1);
-        DSSpawn.map((int) currentImage, &positionsBuffer, sizeof(positionsBuffer), 2);
+                DS3.map(currentImage, &ubo, sizeof(ubo), 0);
+                DS3.map(currentImage, &gubo3, sizeof(gubo3), 1);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    void sunMovement(float time) {
+        sunX = 3 * sin(time);
+        sunY = 3 * cos(time);
     }
 
     void spawnCube() {
@@ -307,7 +394,7 @@ protected:
         const siv::PerlinNoise::seed_type seed = 123456u;
         const siv::PerlinNoise perlin{seed};
 
-        // Calculate the distance from the center of the grid (assuming it is centered at (0, 0))
+        // Calculate the distance from the center of the grid
         float x = (i - 250);
         float y = (j - 250);
         float distanceFromCenter = sqrt(x * x + y * y);
