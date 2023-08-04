@@ -8,15 +8,17 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
 } ubo;
 
 layout(set = 0, binding = 1) uniform GlobalUniformBufferObject {
+    vec3 spot;
+    vec3 lightPos;
     vec3 lightDir;
-    vec3 lightColor;
+    vec4 lightColor;
     vec3 eyePos;
     float time;
 } gubo;
 
 layout(set = 0, binding = 2) uniform PositionsBuffer {
-    vec4 positions[1000];
-    vec4 colors[1000];
+    vec4 positions[5000];
+    vec4 colors[5000];
 } positionsBuffer;
 
 layout(location = 0) in vec3 pos;

@@ -4,7 +4,8 @@
 #include "TextMaker.hpp"
 #include "PerlinNoise.hpp"
 
-#define INSTANCE_MAX 5000
+#define INSTANCE_ISLAND 250000
+#define INSTANCE_MAX_SPAWN 5000
 
 using namespace glm;
 using namespace std;
@@ -37,9 +38,9 @@ struct Vertex {
 };
 
 struct PositionsBuffer {
-    alignas(16) vec4 pos[INSTANCE_MAX];
-    alignas(16) vec4 color[INSTANCE_MAX];
-} positionsBuffer;
+    alignas(16) vec4 pos[INSTANCE_MAX_SPAWN];
+    alignas(16) vec4 color[INSTANCE_MAX_SPAWN];
+};
 
 class Main;
 
@@ -60,6 +61,9 @@ protected:
 
 
     TextMaker txt;
+
+    PositionsBuffer islandBuffer{};
+    PositionsBuffer spawnBuffer{};
 
     float size = 0.025f;
     int instances = 0;
@@ -111,7 +115,8 @@ protected:
                 // second element : the type of element (buffer or texture)
                 // third  element : the pipeline stage where it will be used
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+                {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
         });
 
         DSLSpawn.init(this, {
@@ -142,7 +147,8 @@ protected:
         pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
-        createGrid(island.vertices, island.indices);
+        createCubeMesh(island.vertices, island.indices, 0, 0, 0, 0);
+        spawnIsland();
         createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0);
         createCubeMesh(sun.vertices, sun.indices, 0, 0, 0, 0);
         island.initMesh(this, &VD);
@@ -159,12 +165,13 @@ protected:
 
         DSIsland.init(this, &DSLIsland, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
-                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+                {2, UNIFORM, sizeof(islandBuffer),           nullptr}
         });
         DSSpawn.init(this, &DSLSpawn, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-                {2, UNIFORM, sizeof(PositionsBuffer),           nullptr}
+                {2, UNIFORM, sizeof(spawnBuffer),           nullptr}
         });
         txt.pipelinesAndDescriptorSetsInit();
     }
@@ -204,7 +211,7 @@ protected:
         vkCmdDrawIndexed(
                 commandBuffer,
                 static_cast<uint32_t>(island.indices.size()),
-                1,
+                INSTANCE_ISLAND,
                 0,
                 0,
                 0
@@ -224,7 +231,7 @@ protected:
         vkCmdDrawIndexed(
                 commandBuffer,
                 static_cast<uint32_t>(spawn.indices.size()),
-                INSTANCE_MAX,
+                INSTANCE_MAX_SPAWN,
                 0,
                 0,
                 0
@@ -273,10 +280,6 @@ protected:
                 gubo.lightDir = vec3(cos(dang) * sin(Yaw), sin(dang), cos(dang) * cos(Yaw));
                 gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
                 gubo.eyePos = cameraPos;
-
-                DSSpawn.map((int) currentImage, &ubo, sizeof(ubo), 0);
-                DSSpawn.map((int) currentImage, &gubo, sizeof(gubo), 1);
-                DSSpawn.map((int) currentImage, &positionsBuffer, sizeof(positionsBuffer), 2);
                 break;
             }
             default:
@@ -289,9 +292,22 @@ protected:
 
         DSIsland.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSIsland.map((int) currentImage, &gubo, sizeof(gubo), 1);
+        DSIsland.map((int) currentImage, &islandBuffer, sizeof(islandBuffer), 2);
         DSSpawn.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSpawn.map((int) currentImage, &gubo, sizeof(gubo), 1);
-        DSSpawn.map((int) currentImage, &positionsBuffer, sizeof(positionsBuffer), 2);
+        DSSpawn.map((int) currentImage, &spawnBuffer, sizeof(spawnBuffer), 2);
+    }
+
+    void spawnIsland() {
+        int n = (int) sqrt(INSTANCE_MAX_SPAWN);
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                float noise = perlinNoise((float) i, (float) j);
+                vec4 pos = vec4((float) i * size, noise, (float) j * size, 0);
+                islandBuffer.pos[i * n + j] = pos;
+                cout << "printo: " << i * n + j << "\n";
+            }
+        }
     }
 
     void spawnCube() {
@@ -301,7 +317,7 @@ protected:
         float z = Pos.z / 3.0f - distance * cos(Yaw) * cos(Pitch);
 
         vec4 pos = vec4(x, y, z, 0);
-        positionsBuffer.pos[instances % INSTANCE_MAX] = pos;
+        spawnBuffer.pos[instances % INSTANCE_MAX_SPAWN] = pos;
         instances++;
     }
 
@@ -416,15 +432,11 @@ protected:
         ViewPrj = Prj * View;
     }
 
-    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
-
     void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const;
 };
 
 #include "primGen.hpp"
 
-
-// This is the main: probably you do not need to touch this!
 int main() {
     Main app;
 
