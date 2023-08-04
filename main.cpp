@@ -59,7 +59,6 @@ protected:
     Model<Vertex> island, spawn, sun;
     DescriptorSet DSIsland, DSSpawn;
 
-
     TextMaker txt;
 
     PositionsBuffer islandBuffer{};
@@ -299,13 +298,13 @@ protected:
     }
 
     void spawnIsland() {
-        int n = (int) sqrt(INSTANCE_MAX_SPAWN);
+        int n = (int) sqrt(INSTANCE_ISLAND);
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 float noise = perlinNoise((float) i, (float) j);
                 vec4 pos = vec4((float) i * size, noise, (float) j * size, 0);
                 islandBuffer.pos[i * n + j] = pos;
-                cout << "printo: " << i * n + j << "\n";
+                cout << "i: " << i << " j: " << j << endl;
             }
         }
     }
@@ -326,8 +325,8 @@ protected:
         const siv::PerlinNoise perlin{seed};
 
         // Calculate the distance from the center of the grid
-        float x = (i - 250);
-        float y = (j - 250);
+        float x = i - sqrt(INSTANCE_ISLAND) / 2.0f;
+        float y = j - sqrt(INSTANCE_ISLAND) / 2.0f;
         float distanceFromCenter = sqrt(x * x + y * y);
 
         // Define parameters for the Gaussian RBF
