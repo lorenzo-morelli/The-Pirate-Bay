@@ -65,3 +65,14 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
     vIdx.push_back(20+offset); vIdx.push_back(21+offset); vIdx.push_back(22+offset);
     vIdx.push_back(22+offset); vIdx.push_back(21+offset); vIdx.push_back(23+offset);
 }
+
+void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
+    int n = 500;
+    for (int i = 0; i < n; i++){
+        for(int j = 0; j < n; j++){
+            int offset = (int) vDef.size();
+            float noise = Main::perlinNoise((float) i, (float) j);
+            createCubeMesh(vDef, vIdx, offset, (float) i, noise, (float) j);
+        }
+    }
+}
