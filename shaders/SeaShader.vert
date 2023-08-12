@@ -28,8 +28,11 @@ void main() {
 	float z = pos.z;
 	float t = gubo.time;
 	float y = pos.y;
-	y = 0.3 + 0.1f*sin(0.1*x*z + t)*sin(0.1*x*z + t); // big waves
-	float smallWaves = 0.05f*sin(10*x*z + t)*sin(10*x*z + t); // big waves
+
+	float f2 = cos(x + sin(z + t) + t);
+	float trigo = (sin (x - t) + cos(-x + y + t));
+	y = 0.1 + 0.1f*trigo*trigo;
+	float smallWaves = 0.05f*f2;
 	y += smallWaves;
 
 	vec3 vpos = vec3(x, y, z);

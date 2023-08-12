@@ -87,10 +87,10 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float origi
     float startZ = originZ;
     float endZ = originZ + size;
 
-    const int resX = 1000;
-    const int resZ = 1000;
-    const float halfSizeX = 100;
-    const float halfSizeZ = 100;
+    const int resX = 500;
+    const int resZ = 500;
+    const float halfSizeX = 50;
+    const float halfSizeZ = 50;
 
     for(int i = 0; i <= resX; i++) {
         for(int j = 0; j <= resZ; j++) {
