@@ -76,3 +76,22 @@ void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
         }
     }
 }
+
+
+void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float originX, float originZ, float size) const {
+
+    float startX = originX;
+    float endX = originX + size;
+
+    float startZ = originZ;
+    float endZ = originZ + size;
+
+    // top
+    vDef.push_back({{startX, 0.0f, startZ}, {0.0f, 1.0f, 0.0f}});
+    vDef.push_back({{endX, 0.0f, startZ}, {0.0f, 1.0f, 0.0f}});
+    vDef.push_back({{startX, 0.0f, endZ}, {0.0f, 1.0f, 0.0f}});
+    vDef.push_back({{endX, 0.0f, endZ}, {0.0f, 1.0f, 0.0f}});
+
+    vIdx.push_back(0); vIdx.push_back(1); vIdx.push_back(2);
+    vIdx.push_back(2); vIdx.push_back(1); vIdx.push_back(3);
+}
