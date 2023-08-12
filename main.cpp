@@ -69,7 +69,7 @@ protected:
     int height = 600;
     float Ar{};
     mat4 ViewPrj{};
-    vec3 Pos = vec3(0.0f, 5.0f, 0.0f);
+    vec3 Pos = vec3(10.0f, 0.0f, 10.0f);
     vec3 cameraPos{};
     float Yaw = radians(0.0f);
     float Pitch = radians(0.0f);
@@ -80,7 +80,7 @@ protected:
         // window size, titile and initial background
         windowWidth = width;
         windowHeight = height;
-        windowTitle = "Fantastico Progetto di Morello e Piaggi";
+        windowTitle = "The Pirate Bay ☠";
         windowResizable = GLFW_TRUE;
         initialBackgroundColor = {180.0f / 255.0f, 255.0f / 255.0f, 255.0 / 255.0f, 1.0f};
 
@@ -137,7 +137,7 @@ protected:
         // be used in this pipeline. The first element will be set 0, and so on...
         pipelineIsland.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLIsland});
         pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
-        pipelineSea.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLSea});
+        pipelineSea.init(this, &VD, "shaders/SeaVert.spv", "shaders/SeaFrag.spv", {&DSLSea});
 
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
