@@ -326,8 +326,8 @@ protected:
         // Calculate the distance from the center of the grid
 //        float x = i - sqrt(INSTANCE_ISLAND) / 2.0f;
 //        float y = j - sqrt(INSTANCE_ISLAND) / 2.0f;
-        float x = i - 250.0f;
-        float y = j - 250.0f;
+        float x = i - 150.0f;
+        float y = j - 150.0f;
         float distanceFromCenter = sqrt(x * x + y * y);
 
         // Define parameters for the Gaussian RBF
@@ -336,7 +336,7 @@ protected:
 
         // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
         auto perlinValue = (float) perlin.octave2D_01(i * 0.01f, j * 0.01f, 4);
-        float normalizedDistanceFromCenter = distanceFromCenter / 250.0f; // Normalize distance to range [0,1]
+        float normalizedDistanceFromCenter = distanceFromCenter / 150.0f; // Normalize distance to range [0,1]
         normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
 
         return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
