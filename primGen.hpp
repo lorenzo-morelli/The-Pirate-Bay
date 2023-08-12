@@ -79,6 +79,7 @@ void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
 
 
 void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float originX, float originZ, float size) const {
+    std::vector<float> vPos;
 
     float startX = originX;
     float endX = originX + size;
@@ -86,12 +87,35 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float origi
     float startZ = originZ;
     float endZ = originZ + size;
 
-    // top
-    vDef.push_back({{startX, 0.0f, startZ}, {0.0f, 1.0f, 0.0f}});
-    vDef.push_back({{endX, 0.0f, startZ}, {0.0f, 1.0f, 0.0f}});
-    vDef.push_back({{startX, 0.0f, endZ}, {0.0f, 1.0f, 0.0f}});
-    vDef.push_back({{endX, 0.0f, endZ}, {0.0f, 1.0f, 0.0f}});
+    const int resX = 1000;
+    const int resZ = 1000;
+    const float halfSizeX = 100;
+    const float halfSizeZ = 100;
 
-    vIdx.push_back(0); vIdx.push_back(1); vIdx.push_back(2);
-    vIdx.push_back(2); vIdx.push_back(1); vIdx.push_back(3);
+    for(int i = 0; i <= resX; i++) {
+        for(int j = 0; j <= resZ; j++) {
+            float u = (float)i / float(resX);
+            float v = (float)j / float(resZ);
+            float x = (2 * u - 1.0) * halfSizeX;
+            float z = (2 * v - 1.0) * halfSizeZ;
+
+            vPos.push_back(x); vPos.push_back(0.0); vPos.push_back(z);	// vertex 0
+            vPos.push_back(u); vPos.push_back(v);	//UV
+            vPos.push_back(0.0); vPos.push_back(1.0); vPos.push_back(0.0);	// Norm
+
+            if((i < resX) && (j < resZ)) {
+                int r1 = j * (resX + 1);
+                int r2 = (j + 1) * (resX + 1);
+                vIdx.push_back(r1+i);   vIdx.push_back(r1+i+1); vIdx.push_back(r2+i);
+                vIdx.push_back(r1+i+1); vIdx.push_back(r2+i);   vIdx.push_back(r2+i+1);
+            }
+        }
+    }
+
+    for(int i = 0; i < vPos.size(); i+=8) {
+        Vertex vertex{};
+        vertex.pos = {vPos[i], vPos[i+1], vPos[i+2]};
+        vertex.norm = {vPos[i+5], vPos[i+6], vPos[i+7]};
+        vDef.push_back(vertex);
+    }
 }
