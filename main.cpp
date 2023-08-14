@@ -415,8 +415,8 @@ protected:
         float distanceFromCenter = sqrt(x * x + y * y);
 
         // Define parameters for the Gaussian RBF
-        float amplitude = 2.0f; // Amplitude of the RBF
-        float sigmaSquared = 100.0f; // Variance of the RBF
+        float amplitude = 1.5f; // Amplitude of the RBF
+        float sigmaSquared = 70.0f; // Variance of the RBF
 
         // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
         auto perlinValue = (float) perlin.octave2D_01(i * 0.01f, j * 0.01f, 4);
