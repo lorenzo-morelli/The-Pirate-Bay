@@ -412,11 +412,11 @@ protected:
         float z = Pos.z / 3.0f - distance * cos(Yaw) * cos(Pitch);
         vec4 pos = vec4(x, y, z, 0);
         positionsBuffer.pos[instances % INSTANCE_MAX] = pos;
+        movingCubes[instances % 50] = instances % INSTANCE_MAX;
         instances++;
-        movingCubes[instances % 10] = instances % INSTANCE_MAX;
     }
 
-    static float perlinNoise(float i, float j) {
+    float perlinNoise(float i, float j) {
         const siv::PerlinNoise::seed_type seed = 123456u;
         const siv::PerlinNoise perlin{seed};
 
@@ -433,7 +433,7 @@ protected:
         float normalizedDistanceFromCenter = distanceFromCenter / 150.0f; // Normalize distance to range [0,1]
         normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
 
-        return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
+        return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared) / size;
     }
 
     void gamePhysics(float deltaT, vec3 m) {
@@ -452,7 +452,7 @@ protected:
         Pos = Pos + velocity * deltaT;
 
         // Calculate the height of the ground using Perlin noise
-        float groundLevel = 3.0f*perlinNoise((Pos.x / size) / 3.0f, (Pos.z / size) / 3.0f);
+        float groundLevel = 3.0f*perlinNoise((Pos.x / size) / 3.0f, (Pos.z / size) / 3.0f) * size;
 
         // Check for collision with the ground
         if (Pos.y <= groundLevel) {
@@ -478,11 +478,10 @@ protected:
 
 
         //test spawn
-        for(int i = 0; i<50;i++){
-            int j = movingCubes[i];
-            float groundLevel = 3.0f*perlinNoise((positionsBuffer.pos[j].x / size) / 3.0f, (positionsBuffer.pos[j].z/ size) / 3.0f) + size*3.0f;
-            if (positionsBuffer.pos[j].y <= groundLevel) {
-                positionsBuffer.pos[j].y = groundLevel;
+        for(int j : movingCubes){
+            float level = 3.0f*perlinNoise((positionsBuffer.pos[j].x / size) / 3.0f, (positionsBuffer.pos[j].x / size) / 3.0f) * size;
+            if (positionsBuffer.pos[j].y <= level) {
+                positionsBuffer.pos[j].y = level;
             }
             else{
                 positionsBuffer.pos[j].y -= 98.0f * deltaT* deltaT;
@@ -534,7 +533,7 @@ protected:
         ViewPrj = Prj * View;
     }
 
-    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
+    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
     void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const;
     void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float originX, float originZ, float size) const;
     void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);

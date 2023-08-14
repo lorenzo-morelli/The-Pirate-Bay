@@ -8,8 +8,8 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
     float startZ = z*size;
     float endZ = z*size + size;
 
-    float startY = y - size/2;
-    float endY = size*y + size/2 ;
+    float startY = y*size;
+    float endY = y*size + size;
 
     //far
     vDef.push_back({{startX, startY, startZ}, {0.0f, 0.0f, -1.0f}});  // vertex 0 - Position and Normal
@@ -66,7 +66,7 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
     vIdx.push_back(22+offset); vIdx.push_back(21+offset); vIdx.push_back(23+offset);
 }
 
-void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
+void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     int n = 300;
     for (int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
@@ -79,7 +79,7 @@ void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
 
 
 void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float originX, float originZ, float size) const {
-    std::vector<float> vPos;
+    vector<float> vPos;
 
     float startX = originX;
     float endX = originX + size;
