@@ -60,7 +60,7 @@ protected:
     Model<Vertex> island, sea, spawn, sun;
     Model<VertexUV> sky;
     DescriptorSet DSIsland, DSSea, DSSpawn, DSSky;
-    Texture texSky;
+    Texture texSkyDay, texSkyNight;
 
     TextMaker txt;
 
@@ -130,7 +130,8 @@ protected:
         DSLSky.init(this, {
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
                 {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
-                {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS}
+                {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
+                {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
         });
 
         // Vertex descriptors
@@ -175,7 +176,8 @@ protected:
         sun.initMesh(this, &VD);
         sky.initMesh(this, &VDSky);
 
-        texSky.init(this, "textures/2k_mars.jpg");
+        texSkyDay.init(this, "textures/skyDay.jpg");
+        texSkyNight.init(this, "textures/skyNight.jpg");
 
         txt.init(this, &demoText, width, height);
     }
@@ -206,7 +208,8 @@ protected:
         DSSky.init(this, &DSLSky, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-                {2, TEXTURE, 0,                   &texSky}
+                {2, TEXTURE, 0,                   &texSkyDay},
+                {3, TEXTURE, 0,                   &texSkyNight}
         });
 
         txt.pipelinesAndDescriptorSetsInit();
@@ -230,7 +233,8 @@ protected:
     // Here you destroy all the Models, Texture and Desc. Set Layouts you created!
     // You also have to destroy the pipelines
     void localCleanup() override {
-        texSky.cleanup();
+        texSkyDay.cleanup();
+        texSkyNight.cleanup();
 
         island.cleanup();
         sea.cleanup();
