@@ -9,7 +9,7 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
     float endZ = z*size + size;
 
     float startY = y - size/2;
-    float endY = (size*2.0f)*y + size/2 ;
+    float endY = size*y + size/2 ;
 
     //far
     vDef.push_back({{startX, startY, startZ}, {0.0f, 0.0f, -1.0f}});  // vertex 0 - Position and Normal
