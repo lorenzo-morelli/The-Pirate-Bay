@@ -43,6 +43,8 @@ struct PositionsBuffer {
     alignas(16) vec4 color[INSTANCE_MAX];
 } positionsBuffer;
 
+int movingCubes[50];
+
 class Main;
 
 class Main : public BaseProject {
@@ -327,10 +329,17 @@ protected:
         gubo.spot = spot;
         if (glfwGetKey(window, GLFW_KEY_N)) spot == 0 ? spot = 1 : spot = 0;
 
+
+        static float spawnTime = 0.0f;
+
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
-            cout << "nuovo cubbo!\n";
-            spawnCube();
+            if(spawnTime<=0.0f){
+                spawnCube();
+                spawnTime=1.0f;
+            }
         }
+
+        spawnTime -= 0.1f;
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, GL_TRUE);
 
@@ -404,6 +413,7 @@ protected:
         vec4 pos = vec4(x, y, z, 0);
         positionsBuffer.pos[instances % INSTANCE_MAX] = pos;
         instances++;
+        movingCubes[instances % 10] = instances % INSTANCE_MAX;
     }
 
     static float perlinNoise(float i, float j) {
@@ -442,8 +452,7 @@ protected:
         Pos = Pos + velocity * deltaT;
 
         // Calculate the height of the ground using Perlin noise
-        float groundLevel = perlinNoise((Pos.x / size) / 3.0f, (Pos.z / size) / 3.0f);
-        groundLevel = groundLevel * 3.0f;
+        float groundLevel = 3.0f*perlinNoise((Pos.x / size) / 3.0f, (Pos.z / size) / 3.0f);
 
         // Check for collision with the ground
         if (Pos.y <= groundLevel) {
@@ -466,6 +475,19 @@ protected:
 
         // Update the position again after the jump
         Pos = Pos + velocity * deltaT;
+
+
+        //test spawn
+        for(int i = 0; i<50;i++){
+            int j = movingCubes[i];
+            float groundLevel = 3.0f*perlinNoise((positionsBuffer.pos[j].x / size) / 3.0f, (positionsBuffer.pos[j].z/ size) / 3.0f) + size*3.0f;
+            if (positionsBuffer.pos[j].y <= groundLevel) {
+                positionsBuffer.pos[j].y = groundLevel;
+            }
+            else{
+                positionsBuffer.pos[j].y -= 98.0f * deltaT* deltaT;
+            }
+        }
     }
 
     void gameLogic(float deltaT, vec3 r) {
