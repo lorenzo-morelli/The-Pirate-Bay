@@ -66,7 +66,7 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
     vIdx.push_back(22+offset); vIdx.push_back(21+offset); vIdx.push_back(23+offset);
 }
 
-void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
+void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
     int n = 300;
     for (int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
@@ -117,5 +117,60 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float origi
         vertex.pos = {vPos[i], vPos[i+1], vPos[i+2]};
         vertex.norm = {vPos[i+5], vPos[i+6], vPos[i+7]};
         vDef.push_back(vertex);
+    }
+}
+
+void Main::createSphereMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
+    int resolution = 100;
+    float radius = 10.0f;
+    int textureWidth = 2048;
+    int textureHeight = 1024;
+
+    // Create a sphere of radius 1 centered at (10, 10) with the given resolution
+    // that is textured with the given texture
+
+    //TODO: find true center of the scene
+
+    for (int i = 0; i <= resolution; i++) {
+        for (int j = 0; j <= resolution; j++) {
+            float phi = (float)i / (float)resolution * 2.0f * M_PI;
+            float theta = (float)j / (float)resolution * M_PI;
+            float x = radius * sinf(theta) * cosf(phi) + 7.5f;
+            float y = radius * cosf(theta);
+            float z = radius * sinf(theta) * sinf(phi) + 7.5f;
+            float u = (float)i / (float)resolution;
+            float v = (float)j / (float)resolution;
+            vDef.push_back({{x, y, z}, {x, y, z}, }); // {u, v}
+        }
+    }
+
+//    for (int i = 0; i <= resolution; i++) {
+//        for (int j = 0; j <= resolution; j++) {
+//            float phi = (float)i / (float)resolution * 2.0f * M_PI;
+//            float theta = (float)j / (float)resolution * M_PI;
+//            float x = radius * sinf(theta) * cosf(phi);
+//            float y = radius * cosf(theta);
+//            float z = radius * sinf(theta) * sinf(phi);
+//            float u = (float)i / (float)resolution;
+//            float v = (float)j / (float)resolution;
+//            vDef.push_back({{x, y, z}, {x, y, z}}); //, {u, v}});
+//        }
+//    }
+
+    for (int i = 0; i < resolution; i++) {
+        for (int j = 0; j < resolution; j++) {
+            int current = i * (resolution + 1) + j;
+            int next = current + resolution + 1;
+
+            // Triangle 1
+            vIdx.push_back(current);
+            vIdx.push_back(current + 1);
+            vIdx.push_back(next + 1);
+
+            // Triangle 2
+            vIdx.push_back(next + 1);
+            vIdx.push_back(next);
+            vIdx.push_back(current);
+        }
     }
 }

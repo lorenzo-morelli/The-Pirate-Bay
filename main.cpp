@@ -3,6 +3,9 @@
 #include "Starter.hpp"
 #include "TextMaker.hpp"
 #include "PerlinNoise.hpp"
+#include <windows.h>
+#include <iostream>
+#pragma comment(lib, "winmm.lib")
 
 #define INSTANCE_MAX 5000
 
@@ -48,15 +51,16 @@ protected:
     // Here you list all the Vulkan objects you need:
 
     // Descriptor Layouts [what will be passed to the shaders]
-    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{};
+    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{};
 
     // Pipelines [Shader couples]
     VertexDescriptor VD;
-    Pipeline pipelineIsland, pipelineSpawn, pipelineSea;
+    Pipeline pipelineIsland, pipelineSpawn, pipelineSea, pipelineSky;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
-    Model<Vertex> island, sea, spawn, sun;
-    DescriptorSet DSIsland, DSSea, DSSpawn;
+    Model<Vertex> island, sea, spawn, sun, sky;
+    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky;
+    Texture texSky;
 
     TextMaker txt;
 
@@ -85,9 +89,9 @@ protected:
         initialBackgroundColor = {180.0f / 255.0f, 255.0f / 255.0f, 255.0 / 255.0f, 1.0f};
 
         // Descriptor pool sizes
-        uniformBlocksInPool = 7;
-        texturesInPool = 4;
-        setsInPool = 4;
+        uniformBlocksInPool = 200;
+        texturesInPool = 200;
+        setsInPool = 200;
 
         Ar = 4.0f / 3.0f;
     }
@@ -124,6 +128,11 @@ protected:
                 {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
         });
 
+        DSLSky.init(this, {
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+        });
+
         // Vertex descriptors
         VD.init(
                 this,
@@ -138,21 +147,26 @@ protected:
         pipelineIsland.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLIsland});
         pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
         pipelineSea.init(this, &VD, "shaders/SeaVert.spv", "shaders/SeaFrag.spv", {&DSLSea});
+        pipelineSky.init(this, &VD, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
 
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSea.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+        pipelineSky.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
         createPlane(sea.vertices,sea.indices,-100.0f,-100.0f,1000.0f);
         createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0);
         createCubeMesh(sun.vertices, sun.indices, 0, 0, 0, 0);
+        createSphereMesh(sky.vertices, sky.indices);
 
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
         sea.initMesh(this,&VD);
         sun.initMesh(this, &VD);
+        sky.initMesh(this, &VD);
+
         txt.init(this, &demoText, width, height);
     }
 
@@ -162,6 +176,7 @@ protected:
         pipelineIsland.create();
         pipelineSpawn.create();
         pipelineSea.create();
+        pipelineSky.create();
 
         DSIsland.init(this, &DSLIsland, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
@@ -178,6 +193,11 @@ protected:
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
         });
 
+        DSSky.init(this, &DSLSky, {
+                {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+        });
+
         txt.pipelinesAndDescriptorSetsInit();
     }
 
@@ -186,9 +206,13 @@ protected:
         pipelineIsland.cleanup();
         pipelineSpawn.cleanup();
         pipelineSea.cleanup();
+        pipelineSky.cleanup();
+
         DSIsland.cleanup();
         DSSea.cleanup();
         DSSpawn.cleanup();
+        DSSky.cleanup();
+
         txt.pipelinesAndDescriptorSetsCleanup();
     }
 
@@ -199,14 +223,17 @@ protected:
         sea.cleanup();
         spawn.cleanup();
         sun.cleanup();
+        sky.cleanup();
 
         DSLIsland.cleanup();
         DSLSpawn.cleanup();
         DSLSea.cleanup();
+        DSLSky.cleanup();
 
         pipelineIsland.destroy();
         pipelineSea.destroy();
         pipelineSpawn.destroy();
+        pipelineSky.destroy();
 
         txt.localCleanup();
     }
@@ -256,6 +283,18 @@ protected:
                 commandBuffer,
                 static_cast<uint32_t>(spawn.indices.size()),
                 INSTANCE_MAX,
+                0,
+                0,
+                0
+        );
+
+        pipelineSky.bind(commandBuffer);
+        sky.bind(commandBuffer);
+        DSSky.bind(commandBuffer, pipelineSky, currentImage);
+        vkCmdDrawIndexed(
+                commandBuffer,
+                static_cast<uint32_t>(sky.indices.size()),
+                1,
                 0,
                 0,
                 0
@@ -323,6 +362,9 @@ protected:
         DSSpawn.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSpawn.map((int) currentImage, &gubo, sizeof(gubo), 1);
         DSSpawn.map((int) currentImage, &positionsBuffer, sizeof(positionsBuffer), 2);
+
+        DSSky.map((int) currentImage, &ubo, sizeof(ubo), 0);
+        DSSky.map((int) currentImage, &gubo, sizeof(gubo), 1);
     }
 
 //    void spawnIsland() {
@@ -453,16 +495,18 @@ protected:
         ViewPrj = Prj * View;
     }
 
-    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
     void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const;
-    void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx,float originX, float originZ, float size) const;
+    void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float originX, float originZ, float size) const;
+    void createSphereMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
 };
 
 #include "primGen.hpp"
 
 int main() {
     Main app;
-
+//    std::cout<<"Sound playing... enjoy....!!!";
+//    PlaySound("C:\\temp\\sound_test.wav", NULL, SND_FILENAME); //SND_FILENAME or SND_LOO
     try {
         app.run();
     } catch (const exception &e) {
