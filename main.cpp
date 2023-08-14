@@ -3,9 +3,6 @@
 #include "Starter.hpp"
 #include "TextMaker.hpp"
 #include "PerlinNoise.hpp"
-#include <windows.h>
-#include <iostream>
-#pragma comment(lib, "winmm.lib")
 
 #define INSTANCE_MAX 5000
 
@@ -39,6 +36,12 @@ struct Vertex {
     vec3 norm;
 };
 
+struct VertexUV {
+    vec3 pos;
+    vec3 norm;
+    vec2 UV;
+};
+
 struct PositionsBuffer {
     alignas(16) vec4 pos[INSTANCE_MAX];
     alignas(16) vec4 color[INSTANCE_MAX];
@@ -54,11 +57,12 @@ protected:
     DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{};
 
     // Pipelines [Shader couples]
-    VertexDescriptor VD;
+    VertexDescriptor VD, VDSky;
     Pipeline pipelineIsland, pipelineSpawn, pipelineSea, pipelineSky;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
-    Model<Vertex> island, sea, spawn, sun, sky;
+    Model<Vertex> island, sea, spawn, sun;
+    Model<VertexUV> sky;
     DescriptorSet DSIsland, DSSea, DSSpawn, DSSky;
     Texture texSky;
 
@@ -106,7 +110,6 @@ protected:
     // Here you load and setup all your Vulkan Models and Textures.
     // Here you also create your Descriptor set layouts and load the shaders for the pipelines
     void localInit() override {
-
         // Descriptor Layouts [what will be passed to the shaders]
         DSLIsland.init(this, {
                 // this array contains the binding:
@@ -130,7 +133,8 @@ protected:
 
         DSLSky.init(this, {
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+                {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_ALL_GRAPHICS}
         });
 
         // Vertex descriptors
@@ -141,13 +145,21 @@ protected:
                  {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm), sizeof(vec3), NORMAL}}
         );
 
+        VDSky.init(
+                this,
+                {{0, sizeof(VertexUV), VK_VERTEX_INPUT_RATE_VERTEX}},
+                {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexUV, pos),  sizeof(vec3), POSITION},
+                 {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexUV, norm), sizeof(vec3), NORMAL},
+                 {0, 2, VK_FORMAT_R32G32_SFLOAT,    offsetof(VertexUV, UV),  sizeof(vec2), UV}}
+        );
+
         // Pipelines [Shader couples]
         // The last array, is a vector of pointer to the layouts of the sets that will
         // be used in this pipeline. The first element will be set 0, and so on...
         pipelineIsland.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLIsland});
         pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
         pipelineSea.init(this, &VD, "shaders/SeaVert.spv", "shaders/SeaFrag.spv", {&DSLSea});
-        pipelineSky.init(this, &VD, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
+        pipelineSky.init(this, &VDSky, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
 
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
@@ -165,7 +177,9 @@ protected:
         spawn.initMesh(this, &VD);
         sea.initMesh(this,&VD);
         sun.initMesh(this, &VD);
-        sky.initMesh(this, &VD);
+        sky.initMesh(this, &VDSky);
+
+        texSky.init(this, "textures/2k_mars.jpg");
 
         txt.init(this, &demoText, width, height);
     }
@@ -195,7 +209,8 @@ protected:
 
         DSSky.init(this, &DSLSky, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
-                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+                {2, TEXTURE, 0,                   &texSky}
         });
 
         txt.pipelinesAndDescriptorSetsInit();
@@ -219,6 +234,8 @@ protected:
     // Here you destroy all the Models, Texture and Desc. Set Layouts you created!
     // You also have to destroy the pipelines
     void localCleanup() override {
+        texSky.cleanup();
+
         island.cleanup();
         sea.cleanup();
         spawn.cleanup();
@@ -454,7 +471,7 @@ protected:
     void gameLogic(float deltaT, vec3 r) {
         const float FOVy = radians(80.0f);
         const float nearPlane = 0.1f;
-        const float farPlane = 100.f;
+        const float farPlane = 300.f;
         // Camera target height and distance
         const float camHeight = 0.5f;
         const float camDist = 0.0001f;
@@ -498,15 +515,13 @@ protected:
     void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
     void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const;
     void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float originX, float originZ, float size) const;
-    void createSphereMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
+    void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
 };
 
 #include "primGen.hpp"
 
 int main() {
     Main app;
-//    std::cout<<"Sound playing... enjoy....!!!";
-//    PlaySound("C:\\temp\\sound_test.wav", NULL, SND_FILENAME); //SND_FILENAME or SND_LOO
     try {
         app.run();
     } catch (const exception &e) {

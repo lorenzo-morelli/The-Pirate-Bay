@@ -120,42 +120,27 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float origi
     }
 }
 
-void Main::createSphereMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
+void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &vIdx) {
     int resolution = 100;
-    float radius = 10.0f;
-    int textureWidth = 2048;
-    int textureHeight = 1024;
+    float radius = 30.0f;
 
-    // Create a sphere of radius 1 centered at (10, 10) with the given resolution
+    // Create a sphere of radius 1 centered at the origin with the given resolution
     // that is textured with the given texture
 
-    //TODO: find true center of the scene
+    float center = 7.5f;
 
     for (int i = 0; i <= resolution; i++) {
         for (int j = 0; j <= resolution; j++) {
             float phi = (float)i / (float)resolution * 2.0f * M_PI;
             float theta = (float)j / (float)resolution * M_PI;
-            float x = radius * sinf(theta) * cosf(phi) + 7.5f;
+            float x = radius * sinf(theta) * cosf(phi) + center;
             float y = radius * cosf(theta);
-            float z = radius * sinf(theta) * sinf(phi) + 7.5f;
+            float z = radius * sinf(theta) * sinf(phi) + center;
             float u = (float)i / (float)resolution;
             float v = (float)j / (float)resolution;
-            vDef.push_back({{x, y, z}, {x, y, z}, }); // {u, v}
+            vDef.push_back({{x, y, z}, {x, y, z}, {u, v}});
         }
     }
-
-//    for (int i = 0; i <= resolution; i++) {
-//        for (int j = 0; j <= resolution; j++) {
-//            float phi = (float)i / (float)resolution * 2.0f * M_PI;
-//            float theta = (float)j / (float)resolution * M_PI;
-//            float x = radius * sinf(theta) * cosf(phi);
-//            float y = radius * cosf(theta);
-//            float z = radius * sinf(theta) * sinf(phi);
-//            float u = (float)i / (float)resolution;
-//            float v = (float)j / (float)resolution;
-//            vDef.push_back({{x, y, z}, {x, y, z}}); //, {u, v}});
-//        }
-//    }
 
     for (int i = 0; i < resolution; i++) {
         for (int j = 0; j < resolution; j++) {
