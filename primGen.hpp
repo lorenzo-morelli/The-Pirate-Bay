@@ -122,7 +122,7 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float origi
 
 void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &vIdx) {
     int resolution = 100;
-    float radius = 30.0f;
+    float radius = 50.0f;
 
     // Create a sphere of radius 1 centered at the origin with the given resolution
     // that is textured with the given texture

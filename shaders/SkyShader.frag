@@ -8,7 +8,7 @@ layout(location = 2) in vec2 fragUV;
 layout(location = 0) out vec4 outColor;
 
 layout(set = 0, binding = 1) uniform GlobalUniformBufferObject {
-    vec3 spot;
+    bool spot;
     vec3 lightPos;
     vec3 lightDir;
     vec4 lightColor;

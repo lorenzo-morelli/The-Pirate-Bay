@@ -9,11 +9,7 @@
 using namespace glm;
 using namespace std;
 
-vector<SingleText> demoText = {
-        {1, {"+", "", "", ""}, 0, 0},
-        {1, {"+", "", "", ""}, 0, 0},
-        {1, {"+", "", "", ""}, 0, 0}
-};
+vector<SingleText> demoText = {{1, {"+", "", "", ""}, 0, 0}};
 
 // The uniform buffer object used in this example
 struct UniformBufferObject {
@@ -23,7 +19,7 @@ struct UniformBufferObject {
 };
 
 struct GlobalUniformBufferObject {
-    alignas(16) vec3 spot;
+    alignas(4) bool spot;
     alignas(16) vec3 lightPos;
     alignas(16) vec3 lightDir;
     alignas(16) vec4 lightColor;
@@ -70,7 +66,7 @@ protected:
 
     float size = 0.025f;
     int instances = 0;
-    float spot = 0;
+    bool spot = 0;
 
     // Other application parameters
     int width = 800;
@@ -324,7 +320,7 @@ protected:
     // Very likely this will be where you will be writing the logic of your application.
     void updateUniformBuffer(uint32_t currentImage) override {
         GlobalUniformBufferObject gubo{};
-        gubo.spot.x = spot;
+        gubo.spot = spot;
         if (glfwGetKey(window, GLFW_KEY_N)) spot == 0 ? spot = 1 : spot = 0;
 
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
@@ -347,7 +343,7 @@ protected:
         ubo.mvpMat = ViewPrj * ubo.mMat;
         ubo.nMat = inverse(transpose(ubo.mMat));
 
-        switch ((int) gubo.spot.x) {
+        switch ((int) spot) {
             case 0: {
                 gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
                 gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
