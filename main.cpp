@@ -41,7 +41,7 @@ struct VertexUV {
 
 struct PositionsBuffer {
     alignas(16) vec4 pos[INSTANCE_MAX];
-    alignas(16) vec4 color[INSTANCE_MAX];
+    alignas(4) bool hasGravity[INSTANCE_MAX];
 } positionsBuffer;
 
 int movingCubes[50];
@@ -392,33 +392,39 @@ protected:
     void spawnLogic(float deltaT) {
         static float spawnTime = 0.0f;
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) && spawnTime <= 0.0f) { // with gravity
-            spawnCube();
+            spawnCube(true);
+            spawnTime = 1.0f;
+        }
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) && spawnTime <= 0.0f) { // with gravity
+            spawnCube(false);
             spawnTime = 1.0f;
         }
         spawnTime -= 0.1f;
         for (int j: movingCubes) {
-            float level = perlinNoise((positionsBuffer.pos[j].x), (positionsBuffer.pos[j].z)) + size;
-            if (positionsBuffer.pos[j].y <= level) {
-                positionsBuffer.pos[j].y = level;
-            } else {
-                positionsBuffer.pos[j].y -= 98.0f * deltaT * deltaT;
+            if (positionsBuffer.hasGravity[j]) {
+                float level = perlinNoise((positionsBuffer.pos[j].x), (positionsBuffer.pos[j].z)) + size;
+                if (positionsBuffer.pos[j].y <= level) {
+                    positionsBuffer.pos[j].y = level;
+                } else {
+                    positionsBuffer.pos[j].y -= 98.0f * deltaT * deltaT;
+                }
             }
         }
     }
 
-    void spawnCube() {
+    void spawnCube(bool hasGravity) {
         float distance = 0.5f;
         float x = Pos.x - distance * sin(Yaw) * cos(Pitch);
         float y = Pos.y + distance - distance * sin(Pitch);
         float z = Pos.z - distance * cos(Yaw) * cos(Pitch);
         vec4 pos = vec4(x, y, z, 0);
         positionsBuffer.pos[instances % INSTANCE_MAX] = pos;
+        positionsBuffer.hasGravity[instances % INSTANCE_MAX] = hasGravity;
         movingCubes[instances % 50] = instances % INSTANCE_MAX;
         instances++;
     }
 
-
-    float perlinNoise(float x, float y) {
+    float perlinNoise(float x, float y) const {
         const siv::PerlinNoise::seed_type seed = 123456u;
         const siv::PerlinNoise perlin{seed};
 
@@ -525,10 +531,10 @@ protected:
         ViewPrj = Prj * View;
     }
 
-    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
     void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const;
     void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
-    void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
+    void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx) const;
 };
 
 #include "primGen.hpp"

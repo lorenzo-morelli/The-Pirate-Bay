@@ -18,7 +18,7 @@ layout(set = 0, binding = 1) uniform GlobalUniformBufferObject {
 
 layout(set = 0, binding = 2) uniform PositionsBuffer {
     vec4 positions[5000];
-    vec4 colors[5000];
+    bool hasGravity[5000];
 } positionsBuffer;
 
 layout(location = 0) in vec3 pos;

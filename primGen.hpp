@@ -66,7 +66,7 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
     vIdx.push_back(22+offset); vIdx.push_back(21+offset); vIdx.push_back(23+offset);
 }
 
-void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
+void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
     int n = ISLAND_SIZE;
     for (int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
@@ -114,7 +114,7 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
     }
 }
 
-void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &vIdx) {
+void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &vIdx) const {
     int resolution = 100;
     float radius = 50.0f;
 
@@ -125,8 +125,8 @@ void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &
 
     for (int i = 0; i <= resolution; i++) {
         for (int j = 0; j <= resolution; j++) {
-            float phi = (float)i / (float)resolution * 2.0f * M_PI;
-            float theta = (float)j / (float)resolution * M_PI;
+            float phi = i / (float)resolution * 2.0f * M_PI;
+            float theta = j / (float)resolution * M_PI;
             float x = radius * sinf(theta) * cosf(phi) + center;
             float y = radius * cosf(theta);
             float z = radius * sinf(theta) * sinf(phi) + center;
