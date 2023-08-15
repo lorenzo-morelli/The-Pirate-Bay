@@ -53,22 +53,24 @@ protected:
     // Here you list all the Vulkan objects you need:
 
     // Descriptor Layouts [what will be passed to the shaders]
-    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{};
+    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{}, DSLSun{};
 
     // Pipelines [Shader couples]
     VertexDescriptor VD, VDSky;
-    Pipeline pipelineIsland, pipelineSpawn, pipelineSea, pipelineSky;
+    Pipeline pipelineIsland, pipelineSpawn, pipelineSea, pipelineSky, pipelineSun;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
     Model<Vertex> island, sea, spawn, sun;
     Model<VertexUV> sky;
-    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky;
-    Texture texSkyDay, texSkyNight;
+    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun;
+    Texture texSkyDay{}, texSkyNight{};
 
     TextMaker txt;
 
     float size = 0.05f;
     int instances = 0;
+    float center = ISLAND_SIZE * size / 2; // 7.5
+
 
     // Other application parameters
     float Ar{};
@@ -132,6 +134,11 @@ protected:
                 {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
         });
 
+        DSLSun.init(this, {
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+        });
+
         // Vertex descriptors
         VD.init(
                 this,
@@ -155,17 +162,19 @@ protected:
         pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
         pipelineSea.init(this, &VD, "shaders/SeaVert.spv", "shaders/SeaFrag.spv", {&DSLSea});
         pipelineSky.init(this, &VDSky, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
+        pipelineSun.init(this, &VD, "shaders/SunVert.spv", "shaders/SunFrag.spv", {&DSLSun});
 
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSea.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSky.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+        pipelineSun.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
         createPlane(sea.vertices, sea.indices);
-        createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0);
-        createCubeMesh(sun.vertices, sun.indices, 0, 0, 0, 0);
+        createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0, size);
+        createCubeMesh(sun.vertices, sun.indices, 0, center, 3, center, 10.0f);
         createSphereMesh(sky.vertices, sky.indices);
 
         island.initMesh(this, &VD);
@@ -187,11 +196,13 @@ protected:
         pipelineSpawn.create();
         pipelineSea.create();
         pipelineSky.create();
+        pipelineSun.create();
 
         DSIsland.init(this, &DSLIsland, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
         });
+
         DSSpawn.init(this, &DSLSpawn, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
@@ -210,6 +221,11 @@ protected:
                 {3, TEXTURE, 0,                                 &texSkyNight}
         });
 
+        DSSun.init(this, &DSLSun, {
+                {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+        });
+
         txt.pipelinesAndDescriptorSetsInit();
     }
 
@@ -219,11 +235,13 @@ protected:
         pipelineSpawn.cleanup();
         pipelineSea.cleanup();
         pipelineSky.cleanup();
+        pipelineSun.cleanup();
 
         DSIsland.cleanup();
         DSSea.cleanup();
         DSSpawn.cleanup();
         DSSky.cleanup();
+        DSSun.cleanup();
 
         txt.pipelinesAndDescriptorSetsCleanup();
     }
@@ -244,6 +262,7 @@ protected:
         DSLSpawn.cleanup();
         DSLSea.cleanup();
         DSLSky.cleanup();
+        DSLSun.cleanup();
 
         pipelineIsland.destroy();
         pipelineSea.destroy();
@@ -281,7 +300,9 @@ protected:
                 0
         );
 
+        pipelineSun.bind(commandBuffer);
         sun.bind(commandBuffer);
+        DSSun.bind(commandBuffer, pipelineSun, currentImage);
         vkCmdDrawIndexed(
                 commandBuffer,
                 static_cast<uint32_t>(sun.indices.size()),
@@ -375,19 +396,10 @@ protected:
 
         DSSky.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSky.map((int) currentImage, &gubo, sizeof(gubo), 1);
-    }
 
-//    void spawnIsland() {
-//        int n = (int) sqrt(INSTANCE_ISLAND);
-//        for (int i = 0; i < n; i++) {
-//            for (int j = 0; j < n; j++) {
-//                float noise = perlinNoise((float) i, (float) j);
-//                vec4 pos = vec4((float) i * size, noise, (float) j * size, 0);
-//                islandBuffer.pos[i * n + j] = pos;
-//                cout << "i: " << i << " j: " << j << endl;
-//            }
-//        }
-//    }
+        DSSun.map((int) currentImage, &ubo, sizeof(ubo), 0);
+        DSSun.map((int) currentImage, &gubo, sizeof(gubo), 1);
+    }
 
     void spawnLogic(float deltaT) {
         static float spawnTime = 0.0f;
@@ -422,27 +434,6 @@ protected:
         positionsBuffer.hasGravity[instances % INSTANCE_MAX] = hasGravity;
         movingCubes[instances % 50] = instances % INSTANCE_MAX;
         instances++;
-    }
-
-    float perlinNoise(float x, float y) const {
-        const siv::PerlinNoise::seed_type seed = 123456u;
-        const siv::PerlinNoise perlin{seed};
-
-        //TODO: calculate center
-        float centerX = x - ISLAND_SIZE * size / 2;
-        float centerY = y - ISLAND_SIZE * size / 2;
-        float distanceFromCenter = sqrt(centerX * centerX + centerY * centerY);
-
-        // Define parameters for the Gaussian RBF
-        float amplitude = 1.0f; // Amplitude of the RBF
-        float sigmaSquared = 70.0f; // Variance of the RBF
-
-        // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
-        auto perlinValue = (float) perlin.octave2D_01(x * 0.5f, y * 0.5f, 4);
-        float normalizedDistanceFromCenter = distanceFromCenter / 150.0f; // Normalize distance to range [0,1]
-        normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
-
-        return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
     }
 
     void gamePhysics(float deltaT, vec3 m) {
@@ -530,11 +521,11 @@ protected:
 
         ViewPrj = Prj * View;
     }
-
+    float perlinNoise(float x, float y) const;
     void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
-    void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const;
-    void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
-    void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx) const;
+    static void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize) ;
+    static void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) ;
+    static void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx) ;
 };
 
 #include "primGen.hpp"

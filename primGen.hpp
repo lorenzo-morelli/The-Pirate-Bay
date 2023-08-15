@@ -1,15 +1,15 @@
 using namespace std;
 
-void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const {
+void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize) {
 
     float startX = x;
-    float endX = x + size;
+    float endX = x + cubeSize;
 
     float startZ = z;
-    float endZ = z + size;
+    float endZ = z + cubeSize;
 
     float startY = y;
-    float endY = y + size;
+    float endY = y + cubeSize;
 
     //far
     vDef.push_back({{startX, startY, startZ}, {0.0f, 0.0f, -1.0f}});  // vertex 0 - Position and Normal
@@ -72,13 +72,13 @@ void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
         for(int j = 0; j < n; j++){
             int offset = (int) vDef.size();
             float noise = Main::perlinNoise((float) i * size, (float) j * size);
-            createCubeMesh(vDef, vIdx, offset, (float) i * size, noise, (float) j * size);
+            createCubeMesh(vDef, vIdx, offset, (float) i * size, noise, (float) j * size, size);
         }
     }
 }
 
 
-void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
+void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     vector<float> vPos;
 
     const int resX = 500;
@@ -90,8 +90,8 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
         for(int j = 0; j <= resZ; j++) {
             float u = (float)i / float(resX);
             float v = (float)j / float(resZ);
-            float x = (2 * u - 1.0) * halfSizeX;
-            float z = (2 * v - 1.0) * halfSizeZ;
+            float x = (float)(2 * u - 1.0) * halfSizeX;
+            float z = (float)(2 * v - 1.0) * halfSizeZ;
 
             vPos.push_back(x); vPos.push_back(0.0); vPos.push_back(z);	// vertex 0
             vPos.push_back(u); vPos.push_back(v);	//UV
@@ -114,9 +114,9 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
     }
 }
 
-void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &vIdx) const {
-    int resolution = 100;
-    float radius = 50.0f;
+void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &vIdx) {
+    int resolution = 200;
+    float radius = 100.0f;
 
     // Create a sphere of radius 1 centered at the origin with the given resolution
     // that is textured with the given texture
@@ -152,4 +152,25 @@ void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &
             vIdx.push_back(current);
         }
     }
+}
+
+float Main::perlinNoise(float x, float y) const {
+    const siv::PerlinNoise::seed_type seed = 123456u;
+    const siv::PerlinNoise perlin{seed};
+
+    //TODO: calculate center
+    float centerX = x - ISLAND_SIZE * size / 2;
+    float centerY = y - ISLAND_SIZE * size / 2;
+    float distanceFromCenter = sqrt(centerX * centerX + centerY * centerY);
+
+    // Define parameters for the Gaussian RBF
+    float amplitude = 1.0f; // Amplitude of the RBF
+    float sigmaSquared = 70.0f; // Variance of the RBF
+
+    // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
+    auto perlinValue = (float) perlin.octave2D_01(x * 0.5f, y * 0.5f, 4);
+    float normalizedDistanceFromCenter = distanceFromCenter / 150.0f; // Normalize distance to range [0,1]
+    normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
+
+    return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
 }
