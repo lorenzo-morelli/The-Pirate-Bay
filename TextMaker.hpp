@@ -52,12 +52,12 @@ struct TextMaker {
 	
 	std::vector<SingleText> *Texts;
 
-	void init(BaseProject *_BP, std::vector<SingleText> *_Texts, int width, int height) {
+	void init(BaseProject *_BP, std::vector<SingleText> *_Texts) {
 		BP = _BP;
 		Texts = _Texts;
 		createTextDescriptorSetAndVertexLayout();
 		createTextPipeline();
-		createTextModelAndTexture(width, height);
+		createTextModelAndTexture();
 	}
 
 
@@ -84,10 +84,10 @@ struct TextMaker {
 
 
 	
-	void createTextModelAndTexture(int width, int height) {
+	void createTextModelAndTexture() {
 		M.BP = BP;
 		M.VD = &VD;
-		createTextMesh(width, height);
+		createTextMesh();
 		M.createVertexBuffer();
 		M.createIndexBuffer();
 
@@ -95,7 +95,7 @@ struct TextMaker {
 	}
 	
 
-	void createTextMesh(int width, int height) {
+	void createTextMesh() {
 		int totLen = 0;
 		for(auto& Txt : *Texts) {
 			for(int i = 0; i < Txt.usedLines; i++) {
@@ -111,8 +111,8 @@ struct TextMaker {
 		float PtoTdx = 0.0;
 		float PtoTdy = 0.0;
         //TODO: it doesn't scale!!
-		float PtoTsx = 1.5/width; // size x
-		float PtoTsy = 1.5/height; // size y
+		float PtoTsx = 1.5/800; // size x
+		float PtoTsy = 1.5/600; // size y
 		
 		int minChar = 32;
 		int maxChar = 127;

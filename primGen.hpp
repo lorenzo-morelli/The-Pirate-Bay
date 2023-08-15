@@ -2,14 +2,14 @@ using namespace std;
 
 void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const {
 
-    float startX = x*size;
-    float endX = x*size + size;
+    float startX = x;
+    float endX = x + size;
 
-    float startZ = z*size;
-    float endZ = z*size + size;
+    float startZ = z;
+    float endZ = z + size;
 
-    float startY = y*size;
-    float endY = y*size + size;
+    float startY = y;
+    float endY = y + size;
 
     //far
     vDef.push_back({{startX, startY, startZ}, {0.0f, 0.0f, -1.0f}});  // vertex 0 - Position and Normal
@@ -71,21 +71,15 @@ void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     for (int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             int offset = (int) vDef.size();
-            float noise = Main::perlinNoise((float) i, (float) j);
-            createCubeMesh(vDef, vIdx, offset, (float) i, noise, (float) j);
+            float noise = Main::perlinNoise((float) i * size, (float) j * size);
+            createCubeMesh(vDef, vIdx, offset, (float) i * size, noise, (float) j * size);
         }
     }
 }
 
 
-void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float originX, float originZ, float size) const {
+void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
     vector<float> vPos;
-
-    float startX = originX;
-    float endX = originX + size;
-
-    float startZ = originZ;
-    float endZ = originZ + size;
 
     const int resX = 500;
     const int resZ = 500;

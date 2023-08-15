@@ -66,13 +66,10 @@ protected:
 
     TextMaker txt;
 
-    float size = 0.025f;
+    float size = 0.075f;
     int instances = 0;
-    bool spot = 0;
 
     // Other application parameters
-    int width = 800;
-    int height = 600;
     float Ar{};
     mat4 ViewPrj{};
     vec3 Pos = vec3(10.0f, 0.0f, 10.0f);
@@ -84,8 +81,8 @@ protected:
     // Here you set the main application parameters
     void setWindowParameters() override {
         // window size, titile and initial background
-        windowWidth = width;
-        windowHeight = height;
+        windowWidth = 800;
+        windowHeight = 600;
         windowTitle = "The Pirate Bay ☠";
         windowResizable = GLFW_TRUE;
         initialBackgroundColor = {180.0f / 255.0f, 255.0f / 255.0f, 255.0 / 255.0f, 1.0f};
@@ -100,8 +97,6 @@ protected:
 
     // What to do when the window changes size
     void onWindowResize(int w, int h) override {
-        width = w;
-        height = h;
         Ar = (float) w / (float) h;
     }
 
@@ -114,12 +109,12 @@ protected:
                 // first  element : the binding number
                 // second element : the type of element (buffer or texture)
                 // third  element : the pipeline stage where it will be used
-                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}, // ubo
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS} // gubo
         });
 
         DSLSpawn.init(this, {
-                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}, // UBO
                 {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
                 {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
         });
@@ -130,8 +125,8 @@ protected:
         });
 
         DSLSky.init(this, {
-                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS},
                 {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
                 {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
         });
@@ -149,7 +144,7 @@ protected:
                 {{0, sizeof(VertexUV), VK_VERTEX_INPUT_RATE_VERTEX}},
                 {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexUV, pos),  sizeof(vec3), POSITION},
                  {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexUV, norm), sizeof(vec3), NORMAL},
-                 {0, 2, VK_FORMAT_R32G32_SFLOAT,    offsetof(VertexUV, UV),  sizeof(vec2), UV}}
+                 {0, 2, VK_FORMAT_R32G32_SFLOAT,    offsetof(VertexUV, UV),   sizeof(vec2), UV}}
         );
 
         // Pipelines [Shader couples]
@@ -167,21 +162,21 @@ protected:
 
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
-        createPlane(sea.vertices,sea.indices,-100.0f,-100.0f,1000.0f);
+        createPlane(sea.vertices, sea.indices);
         createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0);
         createCubeMesh(sun.vertices, sun.indices, 0, 0, 0, 0);
         createSphereMesh(sky.vertices, sky.indices);
 
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
-        sea.initMesh(this,&VD);
+        sea.initMesh(this, &VD);
         sun.initMesh(this, &VD);
         sky.initMesh(this, &VDSky);
 
         texSkyDay.init(this, "textures/skyDay.jpg");
         texSkyNight.init(this, "textures/skyNight.jpg");
 
-        txt.init(this, &demoText, width, height);
+        txt.init(this, &demoText);
     }
 
     // Here you create your pipelines and Descriptor Sets!
@@ -210,8 +205,8 @@ protected:
         DSSky.init(this, &DSLSky, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-                {2, TEXTURE, 0,                   &texSkyDay},
-                {3, TEXTURE, 0,                   &texSkyNight}
+                {2, TEXTURE, 0,                                 &texSkyDay},
+                {3, TEXTURE, 0,                                 &texSkyNight}
         });
 
         txt.pipelinesAndDescriptorSetsInit();
@@ -326,20 +321,9 @@ protected:
     // Very likely this will be where you will be writing the logic of your application.
     void updateUniformBuffer(uint32_t currentImage) override {
         GlobalUniformBufferObject gubo{};
-        gubo.spot = spot;
-        if (glfwGetKey(window, GLFW_KEY_N)) spot == 0 ? spot = 1 : spot = 0;
+        UniformBufferObject ubo{};
 
-
-        static float spawnTime = 0.0f;
-
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
-            if(spawnTime<=0.0f){
-                spawnCube();
-                spawnTime=1.0f;
-            }
-        }
-
-        spawnTime -= 0.1f;
+        if (glfwGetKey(window, GLFW_KEY_N)) gubo.spot = !gubo.spot;
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, GL_TRUE);
 
@@ -349,14 +333,13 @@ protected:
         getSixAxis(deltaT, m, r, fire);
         gameLogic(deltaT, r);
         gamePhysics(deltaT, m);
+        spawnLogic(deltaT);
 
-        UniformBufferObject ubo{};
-
-        ubo.mMat = scale(mat4(1), vec3(3));
+        ubo.mMat = mat4(1);
         ubo.mvpMat = ViewPrj * ubo.mMat;
         ubo.nMat = inverse(transpose(ubo.mMat));
 
-        switch ((int) spot) {
+        switch ((int) gubo.spot) {
             case 0: {
                 gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
                 gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -405,35 +388,57 @@ protected:
 //        }
 //    }
 
+    void spawnLogic(float deltaT) {
+        static float spawnTime = 0.0f;
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
+            if (spawnTime <= 0.0f) {
+                spawnCube();
+                spawnTime = 0.5f;
+            }
+        }
+        spawnTime -= 0.1f;
+//        for (int j: movingCubes) {
+//            float level = perlinNoise((positionsBuffer.pos[j].x), (positionsBuffer.pos[j].z));
+//            if (positionsBuffer.pos[j].y <= level) {
+//                positionsBuffer.pos[j].y = level;
+//            } else {
+//                positionsBuffer.pos[j].y -= 98.0f * deltaT * deltaT;
+//            }
+//        }
+    }
+
     void spawnCube() {
         float distance = 0.5f;
-        float x = Pos.x / 3.0f - distance * sin(Yaw) * cos(Pitch);
-        float y = (Pos.y + distance) / 3.0f - distance * sin(Pitch);
-        float z = Pos.z / 3.0f - distance * cos(Yaw) * cos(Pitch);
+        float x = Pos.x - distance * sin(Yaw) * cos(Pitch);
+        float y = Pos.y + distance - distance * sin(Pitch);
+        float z = Pos.z - distance * cos(Yaw) * cos(Pitch);
         vec4 pos = vec4(x, y, z, 0);
         positionsBuffer.pos[instances % INSTANCE_MAX] = pos;
         movingCubes[instances % 50] = instances % INSTANCE_MAX;
         instances++;
     }
 
-    float perlinNoise(float i, float j) {
+
+
+    float perlinNoise(float x, float y) {
         const siv::PerlinNoise::seed_type seed = 123456u;
         const siv::PerlinNoise perlin{seed};
 
-        float x = i - 150.0f;
-        float y = j - 150.0f;
-        float distanceFromCenter = sqrt(x * x + y * y);
+        //TODO: calculate center
+        float centerX = x - 11.25f;
+        float centerY = y - 11.25f;
+        float distanceFromCenter = sqrt(centerX * centerX + centerY * centerY);
 
         // Define parameters for the Gaussian RBF
-        float amplitude = 1.5f; // Amplitude of the RBF
+        float amplitude = 1.0f; // Amplitude of the RBF
         float sigmaSquared = 70.0f; // Variance of the RBF
 
         // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
-        auto perlinValue = (float) perlin.octave2D_01(i * 0.01f, j * 0.01f, 4);
+        auto perlinValue = (float) perlin.octave2D_01(x * 0.5f, y * 0.5f, 4);
         float normalizedDistanceFromCenter = distanceFromCenter / 150.0f; // Normalize distance to range [0,1]
         normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
 
-        return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared) / size;
+        return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
     }
 
     void gamePhysics(float deltaT, vec3 m) {
@@ -452,7 +457,7 @@ protected:
         Pos = Pos + velocity * deltaT;
 
         // Calculate the height of the ground using Perlin noise
-        float groundLevel = 3.0f*perlinNoise((Pos.x / size) / 3.0f, (Pos.z / size) / 3.0f) * size;
+        float groundLevel = perlinNoise(Pos.x, Pos.z);
 
         // Check for collision with the ground
         if (Pos.y <= groundLevel) {
@@ -475,18 +480,7 @@ protected:
 
         // Update the position again after the jump
         Pos = Pos + velocity * deltaT;
-
-
-        //test spawn
-        for(int j : movingCubes){
-            float level = 3.0f*perlinNoise((positionsBuffer.pos[j].x / size) / 3.0f, (positionsBuffer.pos[j].x / size) / 3.0f) * size;
-            if (positionsBuffer.pos[j].y <= level) {
-                positionsBuffer.pos[j].y = level;
-            }
-            else{
-                positionsBuffer.pos[j].y -= 98.0f * deltaT* deltaT;
-            }
-        }
+        cout << "POS: " << Pos.x << " " << Pos.y << " " << Pos.z << "::::::::::: PERLIN NOISE: " << groundLevel << endl;
     }
 
     void gameLogic(float deltaT, vec3 r) {
@@ -534,8 +528,11 @@ protected:
     }
 
     void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+
     void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const;
-    void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx, float originX, float originZ, float size) const;
+
+    void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
+
     void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
 };
 
