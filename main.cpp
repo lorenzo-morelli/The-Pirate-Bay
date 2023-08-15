@@ -530,10 +530,10 @@ protected:
         ViewPrj = Prj * View;
     }
     float perlinNoise(float x, float y) const;
-    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
-    static void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize) ;
-    static void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) ;
-    static void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx) ;
+    void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+    static void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize);
+    static void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+    static void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
 };
 
 #include "primGen.hpp"

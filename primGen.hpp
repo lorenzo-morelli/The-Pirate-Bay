@@ -66,12 +66,12 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
     vIdx.push_back(22+offset); vIdx.push_back(21+offset); vIdx.push_back(23+offset);
 }
 
-void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const {
+void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     int n = ISLAND_SIZE;
     for (int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             int offset = (int) vDef.size();
-            float noise = Main::perlinNoise((float) i * size, (float) j * size);
+            float noise = perlinNoise((float) i * size, (float) j * size);
             createCubeMesh(vDef, vIdx, offset, (float) i * size, noise, (float) j * size, size);
         }
     }
@@ -158,14 +158,13 @@ float Main::perlinNoise(float x, float y) const {
     const siv::PerlinNoise::seed_type seed = 123456u;
     const siv::PerlinNoise perlin{seed};
 
-    //TODO: calculate center
     float centerX = x - ISLAND_SIZE * size / 2;
     float centerY = y - ISLAND_SIZE * size / 2;
     float distanceFromCenter = sqrt(centerX * centerX + centerY * centerY);
 
     // Define parameters for the Gaussian RBF
     float amplitude = 1.0f; // Amplitude of the RBF
-    float sigmaSquared = 70.0f; // Variance of the RBF
+    float sigmaSquared = 30.0f; // Variance of the RBF
 
     // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
     auto perlinValue = (float) perlin.octave2D_01(x * 0.5f, y * 0.5f, 4);
