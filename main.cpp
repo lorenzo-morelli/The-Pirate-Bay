@@ -70,6 +70,7 @@ protected:
     float size = 0.05f;
     int instances = 0;
     float center = ISLAND_SIZE * size / 2; // 7.5
+    bool spot = false;
 
     // Other application parameters
     float Ar{};
@@ -344,10 +345,11 @@ protected:
         GlobalUniformBufferObject gubo{};
         UniformBufferObject ubo{};
 
+        gubo.spot = spot;
         static float spotTime = 0.0f;
         if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
             spotTime = 1.0f;
-            gubo.spot = !gubo.spot;
+            spot = !spot;
         }
         spotTime -= 0.1f;
 
