@@ -67,7 +67,7 @@ void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offs
 }
 
 void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
-    int n = 300;
+    int n = ISLAND_SIZE;
     for (int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             int offset = (int) vDef.size();

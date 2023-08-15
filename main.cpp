@@ -5,6 +5,7 @@
 #include "PerlinNoise.hpp"
 
 #define INSTANCE_MAX 5000
+#define ISLAND_SIZE 300
 
 using namespace glm;
 using namespace std;
@@ -66,7 +67,7 @@ protected:
 
     TextMaker txt;
 
-    float size = 0.075f;
+    float size = 0.05f;
     int instances = 0;
 
     // Other application parameters
@@ -390,21 +391,19 @@ protected:
 
     void spawnLogic(float deltaT) {
         static float spawnTime = 0.0f;
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT)) {
-            if (spawnTime <= 0.0f) {
-                spawnCube();
-                spawnTime = 0.5f;
-            }
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) && spawnTime <= 0.0f) { // with gravity
+            spawnCube();
+            spawnTime = 1.0f;
         }
         spawnTime -= 0.1f;
-//        for (int j: movingCubes) {
-//            float level = perlinNoise((positionsBuffer.pos[j].x), (positionsBuffer.pos[j].z));
-//            if (positionsBuffer.pos[j].y <= level) {
-//                positionsBuffer.pos[j].y = level;
-//            } else {
-//                positionsBuffer.pos[j].y -= 98.0f * deltaT * deltaT;
-//            }
-//        }
+        for (int j: movingCubes) {
+            float level = perlinNoise((positionsBuffer.pos[j].x), (positionsBuffer.pos[j].z)) + size;
+            if (positionsBuffer.pos[j].y <= level) {
+                positionsBuffer.pos[j].y = level;
+            } else {
+                positionsBuffer.pos[j].y -= 98.0f * deltaT * deltaT;
+            }
+        }
     }
 
     void spawnCube() {
@@ -419,14 +418,13 @@ protected:
     }
 
 
-
     float perlinNoise(float x, float y) {
         const siv::PerlinNoise::seed_type seed = 123456u;
         const siv::PerlinNoise perlin{seed};
 
         //TODO: calculate center
-        float centerX = x - 11.25f;
-        float centerY = y - 11.25f;
+        float centerX = x - ISLAND_SIZE * size / 2;
+        float centerY = y - ISLAND_SIZE * size / 2;
         float distanceFromCenter = sqrt(centerX * centerX + centerY * centerY);
 
         // Define parameters for the Gaussian RBF
@@ -528,11 +526,8 @@ protected:
     }
 
     void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
-
     void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z) const;
-
     void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) const;
-
     void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
 };
 
