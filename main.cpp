@@ -71,7 +71,6 @@ protected:
     int instances = 0;
     float center = ISLAND_SIZE * size / 2; // 7.5
 
-
     // Other application parameters
     float Ar{};
     mat4 ViewPrj{};
@@ -345,7 +344,14 @@ protected:
         GlobalUniformBufferObject gubo{};
         UniformBufferObject ubo{};
 
-        if (glfwGetKey(window, GLFW_KEY_N)) gubo.spot = !gubo.spot;
+        static float spotTime = 0.0f;
+        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
+            spotTime = 1.0f;
+            gubo.spot = !gubo.spot;
+        }
+        spotTime -= 0.1f;
+
+
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, GL_TRUE);
 
@@ -358,7 +364,7 @@ protected:
         spawnLogic(deltaT);
 
         ubo.mMat = mat4(1);
-        ubo.mvpMat = ViewPrj * ubo.mMat;
+        ubo.mvpMat = ViewPrj;
         ubo.nMat = inverse(transpose(ubo.mMat));
 
         switch ((int) gubo.spot) {
