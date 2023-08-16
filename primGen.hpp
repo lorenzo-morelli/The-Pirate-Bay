@@ -163,13 +163,12 @@ float Main::perlinNoise(float x, float y) const {
     float distanceFromCenter = sqrt(centerX * centerX + centerY * centerY);
 
     // Define parameters for the Gaussian RBF
-    float amplitude = 1.0f; // Amplitude of the RBF
-    float sigmaSquared = 30.0f; // Variance of the RBF
+    float amplitude = 1.5f; // Amplitude of the RBF
+    float sigmaSquared = 0.005f; // Variance of the RBF
 
     // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
     auto perlinValue = (float) perlin.octave2D_01(x * 0.5f, y * 0.5f, 4);
     float normalizedDistanceFromCenter = distanceFromCenter / 150.0f; // Normalize distance to range [0,1]
     normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
-
     return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
 }
