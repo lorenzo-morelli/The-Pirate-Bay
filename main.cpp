@@ -44,6 +44,10 @@ struct PositionsBuffer {
     alignas(4) bool hasGravity[INSTANCE_MAX];
 } positionsBuffer;
 
+struct PositionRocks {
+    alignas(16) vec4 pos[50];
+} positionRocks;
+
 int movingCubes[50];
 
 class Main;
@@ -53,16 +57,16 @@ protected:
     // Here you list all the Vulkan objects you need:
 
     // Descriptor Layouts [what will be passed to the shaders]
-    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{}, DSLSun{};
+    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{}, DSLSun{}, DSLRocks{};
 
     // Pipelines [Shader couples]
     VertexDescriptor VD, VDSky;
-    Pipeline pipelineIsland, pipelineSpawn, pipelineSea, pipelineSky, pipelineSun;
+    Pipeline pipelineIsland, pipelineSpawn, pipelineRocks, pipelineSea, pipelineSky, pipelineSun;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
-    Model<Vertex> island, sea, spawn, sun;
+    Model<Vertex> island, sea, spawn, sun, rock;
     Model<VertexUV> sky;
-    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun;
+    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun, DSRock;
     Texture texSkyDay{}, texSkyNight{};
 
     TextMaker txt;
@@ -91,9 +95,9 @@ protected:
         initialBackgroundColor = {180.0f / 255.0f, 255.0f / 255.0f, 255.0 / 255.0f, 1.0f};
 
         // Descriptor pool sizes
-        uniformBlocksInPool = 200;
-        texturesInPool = 200;
-        setsInPool = 200;
+        uniformBlocksInPool = 400;
+        texturesInPool = 400;
+        setsInPool = 400;
 
         Ar = 4.0f / 3.0f;
     }
@@ -117,6 +121,12 @@ protected:
         });
 
         DSLSpawn.init(this, {
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}, // UBO
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+                {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
+        });
+
+        DSLRocks.init(this, {
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}, // UBO
                 {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
                 {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
@@ -160,12 +170,14 @@ protected:
         // be used in this pipeline. The first element will be set 0, and so on...
         pipelineIsland.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLIsland});
         pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
+        pipelineRocks.init(this, &VD, "shaders/RockVert.spv", "shaders/RockFrag.spv", {&DSLRocks});
         pipelineSea.init(this, &VD, "shaders/SeaVert.spv", "shaders/SeaFrag.spv", {&DSLSea});
         pipelineSky.init(this, &VDSky, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
         pipelineSun.init(this, &VD, "shaders/SunVert.spv", "shaders/SunFrag.spv", {&DSLSun});
 
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSpawn.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+        pipelineRocks.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSea.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSky.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSun.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
@@ -174,17 +186,30 @@ protected:
         createGrid(island.vertices, island.indices);
         createPlane(sea.vertices, sea.indices);
         createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0, size);
+        createCubeMesh(rock.vertices, rock.indices, 0, 0, 0, 0, size);
         createCubeMesh(sun.vertices, sun.indices, 0, center, 3, center, 10.0f);
         createSphereMesh(sky.vertices, sky.indices);
 
+
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
+        rock.initMesh(this, &VD);
         sea.initMesh(this, &VD);
         sun.initMesh(this, &VD);
         sky.initMesh(this, &VDSky);
 
         texSkyDay.init(this, "textures/skyDay.jpg");
         texSkyNight.init(this, "textures/skyNight.jpg");
+
+
+        float testX = 0.0f;
+        float testY = 0.0f;
+        for(int r = 0; r<50;r++) {
+            testX+=1.0f;
+            testY+=1.0f;
+            positionRocks.pos[r] = vec4(testX,1.0f,testY,1.0f);
+        }
+
 
         txt.init(this, &demoText);
     }
@@ -194,6 +219,7 @@ protected:
         // This creates a new pipeline (with the current surface), using its shaders
         pipelineIsland.create();
         pipelineSpawn.create();
+        pipelineRocks.create();
         pipelineSea.create();
         pipelineSky.create();
         pipelineSun.create();
@@ -207,6 +233,12 @@ protected:
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
                 {2, UNIFORM, sizeof(PositionsBuffer),           nullptr}
+        });
+
+        DSRock.init(this, &DSLRocks, {
+                {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+                {2, UNIFORM, sizeof(PositionRocks),           nullptr}
         });
 
         DSSea.init(this, &DSLSea, {
@@ -234,11 +266,13 @@ protected:
         pipelineIsland.cleanup();
         pipelineSpawn.cleanup();
         pipelineSea.cleanup();
+        pipelineRocks.cleanup();
         pipelineSky.cleanup();
         pipelineSun.cleanup();
 
         DSIsland.cleanup();
         DSSea.cleanup();
+        DSRock.cleanup();
         DSSpawn.cleanup();
         DSSky.cleanup();
         DSSun.cleanup();
@@ -255,18 +289,21 @@ protected:
         island.cleanup();
         sea.cleanup();
         spawn.cleanup();
+        rock.cleanup();
         sun.cleanup();
         sky.cleanup();
 
         DSLIsland.cleanup();
         DSLSpawn.cleanup();
+        DSLRocks.cleanup();
         DSLSea.cleanup();
         DSLSky.cleanup();
         DSLSun.cleanup();
 
+        pipelineSpawn.destroy();
+        pipelineRocks.destroy();
         pipelineIsland.destroy();
         pipelineSea.destroy();
-        pipelineSpawn.destroy();
         pipelineSky.destroy();
 
         txt.localCleanup();
@@ -319,6 +356,18 @@ protected:
                 commandBuffer,
                 static_cast<uint32_t>(spawn.indices.size()),
                 INSTANCE_MAX,
+                0,
+                0,
+                0
+        );
+
+        pipelineRocks.bind(commandBuffer);
+        rock.bind(commandBuffer);
+        DSRock.bind(commandBuffer, pipelineRocks, currentImage);
+        vkCmdDrawIndexed(
+                commandBuffer,
+                static_cast<uint32_t>(rock.indices.size()),
+                50,
                 0,
                 0,
                 0
@@ -402,6 +451,10 @@ protected:
         DSSpawn.map((int) currentImage, &gubo, sizeof(gubo), 1);
         DSSpawn.map((int) currentImage, &positionsBuffer, sizeof(positionsBuffer), 2);
 
+        DSRock.map((int) currentImage, &ubo, sizeof(ubo), 0);
+        DSRock.map((int) currentImage, &gubo, sizeof(gubo), 1);
+        DSRock.map((int) currentImage, &positionRocks, sizeof(positionRocks), 2);
+
         DSSky.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSky.map((int) currentImage, &gubo, sizeof(gubo), 1);
 
@@ -415,7 +468,7 @@ protected:
             spawnCube(true);
             spawnTime = 1.0f;
         }
-        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) && spawnTime <= 0.0f) { // with gravity
+        if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) && spawnTime <= 0.0f) { // without gravity
             spawnCube(false);
             spawnTime = 1.0f;
         }
