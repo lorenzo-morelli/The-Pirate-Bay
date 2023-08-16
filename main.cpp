@@ -49,7 +49,7 @@ struct PositionRocks {
     alignas(16) vec4 pos[50];
 } positionRocks;
 
-int movingCubes[50];
+vector<int> movingCubes;
 
 class Main;
 
@@ -474,14 +474,24 @@ protected:
             spawnTime = 1.0f;
         }
         spawnTime -= 0.1f;
-        for (int j: movingCubes) {
+
+        for (vector<int>::iterator it = movingCubes.begin(); it != movingCubes.end();)
+        {
+            int j = *it; //access value pointed by iterator (the ID of the moving cube so to update the position)
+
             if (positionsBuffer.hasGravity[j]) {
-                float level = heightMap[(int)(positionsBuffer.pos[j].x/size)][(int)(positionsBuffer.pos[j].z/size)] + size;
+                float level = heightMap[(int)(positionsBuffer.pos[j].x/size)][(int)(positionsBuffer.pos[j].z/size)];
+
                 if (positionsBuffer.pos[j].y <= level) {
+                    // Remove cube from movingCubes since it touched the ground
                     positionsBuffer.pos[j].y = level;
+                    it = movingCubes.erase(it) ; // Erase and get updated iterator pointing to next element
                 } else {
                     positionsBuffer.pos[j].y -= 98.0f * deltaT * deltaT;
+                    ++it; // Move iterator to next element
                 }
+            } else {
+                ++it; // Move iterator to next element
             }
         }
     }
@@ -492,20 +502,32 @@ protected:
         float y = Pos.y + distance - distance * sin(Pitch);
         float z = Pos.z - distance * cos(Yaw) * cos(Pitch);
 
+        //compute heightMap (grid) coordiantes
+
+        int gridX = (int)(x/size);
+        int gridZ = (int)(z/size);
+
         //grid alignment
-        x = (int)(x/size)*size;
-        z = (int)(z/size)*size;
+        x = gridX*size;
+        z = gridZ*size;
+
+
+        //increase terrain height by 1 cube (size)
+        heightMap[gridX][gridZ] += size;
 
         vec4 pos = vec4(x, y, z, 0);
-        positionsBuffer.pos[instances % INSTANCE_MAX] = pos;
-        positionsBuffer.hasGravity[instances % INSTANCE_MAX] = hasGravity;
-        movingCubes[instances % 50] = instances % INSTANCE_MAX;
+        int cubeID = instances % INSTANCE_MAX;
+        positionsBuffer.pos[cubeID] = pos;
+        positionsBuffer.hasGravity[cubeID] = hasGravity;
+        movingCubes.push_back(cubeID); //add the new spawned cube to the vector of moving cubes
         instances++;
     }
 
     void gamePhysics(float deltaT, vec3 m) {
         const float MOVE_SPEED = 1.0f;
         static float jumpTime = 0.0f;
+        float groundLevel = heightMap[(int)(Pos.x/size)][(int)(Pos.z/size)];
+
 
         // Position
         vec3 ux = rotate(mat4(1.0f), Yaw, vec3(0, 1, 0)) * vec4(1, 0, 0, 1);
@@ -518,8 +540,6 @@ protected:
         // Update position based on velocity
         Pos = Pos + velocity * deltaT;
 
-        // Calculate the height of the ground using Perlin noise
-        float groundLevel = heightMap[(int)(Pos.x/size)][(int)(Pos.z/size)];
 
         // Check for collision with the ground
         if (Pos.y <= groundLevel) {
