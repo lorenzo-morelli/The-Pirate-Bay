@@ -7,7 +7,7 @@
 
 #define INSTANCE_MAX 5000
 #define ISLAND_SIZE 300
-#define ROCKS 500
+#define ROCKS 100
 #define SIZE 0.05f
 
 using namespace glm;
@@ -205,9 +205,16 @@ protected:
         texSkyNight.init(this, "textures/skyNight.jpg");
 
         for(int r = 0; r<ROCKS;r++) {
-            int xRandom = rand() % ISLAND_SIZE;
-            int zRandom = rand() % ISLAND_SIZE;
+            int xRandom = rand() % (ISLAND_SIZE-5); //rock size is 5 cubes
+            int zRandom = rand() % (ISLAND_SIZE-5);
                 positionRocks.pos[r] = vec4(xRandom*size,heightMap[xRandom][zRandom],zRandom*size,1.0f);
+                //recompute heightMap
+                float heightRock = heightMap[xRandom][zRandom] + 5.0f*size - 0.25f -size; //5.0f*size is rockSize , 0.25 is rock offset
+                for(int i = 0; i<5;i++){
+                    for(int j = 0; j<5;j++){
+                        if(heightMap[xRandom + i][zRandom + j]<heightRock) heightMap[xRandom + i][zRandom + j] = heightRock;
+                    }
+                }
         }
 
         txt.init(this, &demoText);
