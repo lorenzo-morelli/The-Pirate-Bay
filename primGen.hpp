@@ -71,7 +71,8 @@ void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     for (int i = 0; i < n; i++){
         for(int j = 0; j < n; j++){
             int offset = (int) vDef.size();
-            float noise = perlinNoise((float) i * size, (float) j * size);
+            heightMap[i][j] = perlinNoise((float) i * size, (float) j * size);
+            float noise = heightMap[i][j];
             createCubeMesh(vDef, vIdx, offset, (float) i * size, noise, (float) j * size, size);
         }
     }

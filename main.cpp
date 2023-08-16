@@ -6,6 +6,7 @@
 
 #define INSTANCE_MAX 5000
 #define ISLAND_SIZE 300
+#define SIZE 0.05f
 
 using namespace glm;
 using namespace std;
@@ -71,7 +72,8 @@ protected:
 
     TextMaker txt;
 
-    float size = 0.05f;
+    float size = SIZE;
+    float heightMap[ISLAND_SIZE][ISLAND_SIZE];
     int instances = 0;
     float center = ISLAND_SIZE * size / 2; // 7.5
     bool spot = false;
@@ -190,7 +192,6 @@ protected:
         createCubeMesh(sun.vertices, sun.indices, 0, center, 3, center, 10.0f);
         createSphereMesh(sky.vertices, sky.indices);
 
-
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
         rock.initMesh(this, &VD);
@@ -201,9 +202,9 @@ protected:
         texSkyDay.init(this, "textures/skyDay.jpg");
         texSkyNight.init(this, "textures/skyNight.jpg");
 
-
         float testX = 0.0f;
         float testY = 0.0f;
+
         for(int r = 0; r<50;r++) {
             testX+=1.0f;
             testY+=1.0f;
@@ -475,7 +476,7 @@ protected:
         spawnTime -= 0.1f;
         for (int j: movingCubes) {
             if (positionsBuffer.hasGravity[j]) {
-                float level = perlinNoise((positionsBuffer.pos[j].x), (positionsBuffer.pos[j].z)) + size;
+                float level = heightMap[(int)(positionsBuffer.pos[j].x/size)][(int)(positionsBuffer.pos[j].z/size)] + size;
                 if (positionsBuffer.pos[j].y <= level) {
                     positionsBuffer.pos[j].y = level;
                 } else {
@@ -513,7 +514,7 @@ protected:
         Pos = Pos + velocity * deltaT;
 
         // Calculate the height of the ground using Perlin noise
-        float groundLevel = perlinNoise(Pos.x, Pos.z);
+        float groundLevel = heightMap[(int)(Pos.x/size)][(int)(Pos.z/size)];
 
         // Check for collision with the ground
         if (Pos.y <= groundLevel) {
