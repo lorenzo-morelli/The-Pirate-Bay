@@ -17,7 +17,7 @@ layout(set = 0, binding = 1) uniform GlobalUniformBufferObject {
 } gubo;
 
 layout(set = 0, binding = 2) uniform PositionRocks{
-    vec4 positions[50];
+    vec4 positions[500];
 } positionsRocks;
 
 layout(location = 0) in vec3 pos;
@@ -32,9 +32,8 @@ void main() {
     float z = pos.z;
     float t = gubo.time;
 
-    float randomSize = fract(sin(gl_InstanceIndex) * 43758.5453);
 
-    vec3 vpos = vec3(x, y, z)*10.0f*randomSize + positionsRocks.positions[gl_InstanceIndex].xyz;
+    vec3 vpos = vec3(x, y, z)*5.01f + positionsRocks.positions[gl_InstanceIndex].xyz - vec3(0.0f,0.25f,0.0f);
 
     gl_Position = ubo.mvpMat * vec4(vpos, 1.0);
     fragPos = (ubo.mMat * vec4(vpos, 1.0)).xyz;

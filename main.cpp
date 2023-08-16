@@ -3,9 +3,11 @@
 #include "Starter.hpp"
 #include "TextMaker.hpp"
 #include "PerlinNoise.hpp"
+#include <cstdlib>
 
 #define INSTANCE_MAX 5000
 #define ISLAND_SIZE 300
+#define ROCKS 500
 #define SIZE 0.05f
 
 using namespace glm;
@@ -46,7 +48,7 @@ struct PositionsBuffer {
 } positionsBuffer;
 
 struct PositionRocks {
-    alignas(16) vec4 pos[50];
+    alignas(16) vec4 pos[ROCKS];
 } positionRocks;
 
 vector<int> movingCubes;
@@ -202,15 +204,11 @@ protected:
         texSkyDay.init(this, "textures/skyDay.jpg");
         texSkyNight.init(this, "textures/skyNight.jpg");
 
-        float testX = 0.0f;
-        float testY = 0.0f;
-
-        for(int r = 0; r<50;r++) {
-            testX+=1.0f;
-            testY+=1.0f;
-            positionRocks.pos[r] = vec4(testX,1.0f,testY,1.0f);
+        for(int r = 0; r<ROCKS;r++) {
+            int xRandom = rand() % ISLAND_SIZE;
+            int zRandom = rand() % ISLAND_SIZE;
+                positionRocks.pos[r] = vec4(xRandom*size,heightMap[xRandom][zRandom],zRandom*size,1.0f);
         }
-
 
         txt.init(this, &demoText);
     }
@@ -368,7 +366,7 @@ protected:
         vkCmdDrawIndexed(
                 commandBuffer,
                 static_cast<uint32_t>(rock.indices.size()),
-                50,
+                ROCKS,
                 0,
                 0,
                 0
