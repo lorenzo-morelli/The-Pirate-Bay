@@ -17,7 +17,7 @@ layout(set = 0, binding = 1) uniform GlobalUniformBufferObject {
 } gubo;
 
 layout(set = 0, binding = 2) uniform PositionRocks{
-    vec4 positions[500];
+    vec4 positions[100];
 } positionsRocks;
 
 layout(location = 0) in vec3 pos;
