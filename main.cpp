@@ -491,6 +491,11 @@ protected:
         float x = Pos.x - distance * sin(Yaw) * cos(Pitch);
         float y = Pos.y + distance - distance * sin(Pitch);
         float z = Pos.z - distance * cos(Yaw) * cos(Pitch);
+
+        //grid alignment
+        x = (int)(x/size)*size;
+        z = (int)(z/size)*size;
+
         vec4 pos = vec4(x, y, z, 0);
         positionsBuffer.pos[instances % INSTANCE_MAX] = pos;
         positionsBuffer.hasGravity[instances % INSTANCE_MAX] = hasGravity;
@@ -537,7 +542,6 @@ protected:
 
         // Update the position again after the jump
         Pos = Pos + velocity * deltaT;
-        cout << "POS: " << Pos.x << " " << Pos.y << " " << Pos.z << "::::::::::: PERLIN NOISE: " << groundLevel << endl;
     }
 
     void gameLogic(float deltaT, vec3 r) {
