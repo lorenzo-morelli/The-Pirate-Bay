@@ -60,17 +60,17 @@ protected:
     // Here you list all the Vulkan objects you need:
 
     // Descriptor Layouts [what will be passed to the shaders]
-    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{}, DSLSun{}, DSLRocks{};
+    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{}, DSLSun{}, DSLRocks{}, DSLFlag{};
 
     // Pipelines [Shader couples]
-    VertexDescriptor VD, VDSky;
-    Pipeline pipelineIsland, pipelineSpawn, pipelineRocks, pipelineSea, pipelineSky, pipelineSun;
+    VertexDescriptor VD, VDuv;
+    Pipeline pipelineIsland, pipelineSpawn, pipelineRocks, pipelineSea, pipelineSky, pipelineSun, pipelineFlag;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
     Model<Vertex> island, sea, spawn, sun, rock;
-    Model<VertexUV> sky;
-    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun, DSRock;
-    Texture texSkyDay{}, texSkyNight{};
+    Model<VertexUV> sky,flag;
+    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun, DSRock, DSFlag;
+    Texture texSkyDay{}, texSkyNight{}, texBlackFlag{};
 
     TextMaker txt;
 
@@ -148,6 +148,12 @@ protected:
                 {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
         });
 
+        DSLFlag.init(this, {
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS},
+                {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+        });
+
         DSLSun.init(this, {
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
                 {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
@@ -161,7 +167,7 @@ protected:
                  {0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, norm), sizeof(vec3), NORMAL}}
         );
 
-        VDSky.init(
+        VDuv.init(
                 this,
                 {{0, sizeof(VertexUV), VK_VERTEX_INPUT_RATE_VERTEX}},
                 {{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexUV, pos),  sizeof(vec3), POSITION},
@@ -176,7 +182,8 @@ protected:
         pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
         pipelineRocks.init(this, &VD, "shaders/RockVert.spv", "shaders/RockFrag.spv", {&DSLRocks});
         pipelineSea.init(this, &VD, "shaders/SeaVert.spv", "shaders/SeaFrag.spv", {&DSLSea});
-        pipelineSky.init(this, &VDSky, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
+        pipelineSky.init(this, &VDuv, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
+        pipelineFlag.init(this, &VDuv, "shaders/FlagVert.spv", "shaders/FlagFrag.spv", {&DSLFlag});
         pipelineSun.init(this, &VD, "shaders/SunVert.spv", "shaders/SunFrag.spv", {&DSLSun});
 
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
@@ -185,10 +192,12 @@ protected:
         pipelineSea.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSky.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSun.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+        pipelineFlag.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
         createPlane(sea.vertices, sea.indices);
+        createPlaneWithUV(flag.vertices, flag.indices);
         createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0, size);
         createCubeMesh(rock.vertices, rock.indices, 0, 0, 0, 0, size);
         createCubeMesh(sun.vertices, sun.indices, 0, center, 3, center, 10.0f);
@@ -199,8 +208,10 @@ protected:
         rock.initMesh(this, &VD);
         sea.initMesh(this, &VD);
         sun.initMesh(this, &VD);
-        sky.initMesh(this, &VDSky);
+        sky.initMesh(this, &VDuv);
+        flag.initMesh(this,&VDuv);
 
+        texBlackFlag.init(this,"textures/BlackFlag.png");
         texSkyDay.init(this, "textures/skyDay.jpg");
         texSkyNight.init(this, "textures/skyNight.jpg");
 
@@ -228,6 +239,7 @@ protected:
         pipelineRocks.create();
         pipelineSea.create();
         pipelineSky.create();
+        pipelineFlag.create();
         pipelineSun.create();
 
         DSIsland.init(this, &DSLIsland, {
@@ -259,6 +271,12 @@ protected:
                 {3, TEXTURE, 0,                                 &texSkyNight}
         });
 
+        DSFlag.init(this, &DSLFlag, {
+                {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+                {2, TEXTURE, 0,                                 &texBlackFlag}
+        });
+
         DSSun.init(this, &DSLSun, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
@@ -272,12 +290,14 @@ protected:
         pipelineIsland.cleanup();
         pipelineSpawn.cleanup();
         pipelineSea.cleanup();
+        pipelineFlag.cleanup();
         pipelineRocks.cleanup();
         pipelineSky.cleanup();
         pipelineSun.cleanup();
 
         DSIsland.cleanup();
         DSSea.cleanup();
+        DSFlag.cleanup();
         DSRock.cleanup();
         DSSpawn.cleanup();
         DSSky.cleanup();
@@ -291,9 +311,11 @@ protected:
     void localCleanup() override {
         texSkyDay.cleanup();
         texSkyNight.cleanup();
+        texBlackFlag.cleanup();
 
         island.cleanup();
         sea.cleanup();
+        flag.cleanup();
         spawn.cleanup();
         rock.cleanup();
         sun.cleanup();
@@ -304,9 +326,11 @@ protected:
         DSLRocks.cleanup();
         DSLSea.cleanup();
         DSLSky.cleanup();
+        DSLFlag.cleanup();
         DSLSun.cleanup();
 
         pipelineSpawn.destroy();
+        pipelineFlag.destroy();
         pipelineRocks.destroy();
         pipelineIsland.destroy();
         pipelineSea.destroy();
@@ -337,6 +361,18 @@ protected:
         vkCmdDrawIndexed(
                 commandBuffer,
                 static_cast<uint32_t>(sea.indices.size()),
+                1,
+                0,
+                0,
+                0
+        );
+
+        pipelineFlag.bind(commandBuffer);
+        flag.bind(commandBuffer);
+        DSFlag.bind(commandBuffer, pipelineFlag, currentImage);
+        vkCmdDrawIndexed(
+                commandBuffer,
+                static_cast<uint32_t>(flag.indices.size()),
                 1,
                 0,
                 0,
@@ -464,6 +500,9 @@ protected:
         DSSky.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSky.map((int) currentImage, &gubo, sizeof(gubo), 1);
 
+        DSFlag.map((int) currentImage, &ubo, sizeof(ubo), 0);
+        DSFlag.map((int) currentImage, &gubo, sizeof(gubo), 1);
+
         DSSun.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSun.map((int) currentImage, &gubo, sizeof(gubo), 1);
     }
@@ -472,11 +511,11 @@ protected:
         static float spawnTime = 0.0f;
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) && spawnTime <= 0.0f) { // with gravity
             spawnCube(true);
-            spawnTime = 1.0f;
+            spawnTime = 2.0f;
         }
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) && spawnTime <= 0.0f) { // without gravity
             spawnCube(false);
-            spawnTime = 1.0f;
+            spawnTime = 2.0f;
         }
         spawnTime -= 0.1f;
 
@@ -616,6 +655,7 @@ protected:
     void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
     static void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize);
     static void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+    static void createPlaneWithUV(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
     static void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
 };
 

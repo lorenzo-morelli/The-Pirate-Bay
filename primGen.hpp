@@ -108,12 +108,50 @@ void Main::createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
     }
 
     for(int i = 0; i < vPos.size(); i+=8) {
-        Vertex vertex{};
-        vertex.pos = {vPos[i], vPos[i+1], vPos[i+2]};
-        vertex.norm = {vPos[i+5], vPos[i+6], vPos[i+7]};
-        vDef.push_back(vertex);
+            Vertex vertex{};
+            vertex.pos = {vPos[i], vPos[i+1], vPos[i+2]};
+            vertex.norm = {vPos[i+5], vPos[i+6], vPos[i+7]};
+            vDef.push_back(vertex);
     }
 }
+
+void Main::createPlaneWithUV(vector<VertexUV> &vDef, vector<uint32_t> &vIdx) {
+    vector<float> vPos;
+
+    const int resX = 50;
+    const int resZ = 50;
+    const float halfSizeX = 20;
+    const float halfSizeZ = 10;
+
+    for(int i = 0; i <= resX; i++) {
+        for(int j = 0; j <= resZ; j++) {
+            float u = (float)i / float(resX);
+            float v = (float)j / float(resZ);
+            float x = (float)(2 * u - 1.0) * halfSizeX;
+            float z = (float)(2 * v - 1.0) * halfSizeZ;
+
+            vPos.push_back(x); vPos.push_back(10.0); vPos.push_back(z);	// vertex 0
+            vPos.push_back(u); vPos.push_back(v);	//UV
+            vPos.push_back(0.0); vPos.push_back(1.0); vPos.push_back(0.0);	// Norm
+
+            if((i < resX) && (j < resZ)) {
+                int r1 = j * (resX + 1);
+                int r2 = (j + 1) * (resX + 1);
+                vIdx.push_back(r1+i);   vIdx.push_back(r1+i+1); vIdx.push_back(r2+i);
+                vIdx.push_back(r1+i+1); vIdx.push_back(r2+i);   vIdx.push_back(r2+i+1);
+            }
+        }
+    }
+
+    for(int i = 0; i < vPos.size(); i+=8) {
+            VertexUV vertex{};
+            vertex.pos = {vPos[i], vPos[i+1], vPos[i+2]};
+            vertex.UV = {vPos[i+3],vPos[i+4]};
+            vertex.norm = {vPos[i+5], vPos[i+6], vPos[i+7]};
+            vDef.push_back(vertex);
+    }
+}
+
 
 void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &vIdx) {
     int resolution = 200;
