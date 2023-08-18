@@ -219,10 +219,10 @@ protected:
         sky.initMesh(this, &VDuv);
         flag.initMesh(this,&VDuv);
 
-        palm.init(this,  &VDuv, "models/Room.obj", OBJ);
+        palm.init(this,  &VDuv, "models/test.obj", OBJ);
 
         texBlackFlag.init(this,"textures/blackFlag.png");
-        texPalm.init(this,"textures/blackFlag.png");
+        texPalm.init(this,"textures/testBaked.jpg");
         texSkyDay.init(this, "textures/skyDay.jpg");
         texSkyNight.init(this, "textures/skyNight.jpg");
 
