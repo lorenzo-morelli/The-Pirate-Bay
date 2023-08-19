@@ -194,7 +194,6 @@ void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &
 }
 
 float Main::perlinNoise(float x, float y) const {
-    const siv::PerlinNoise::seed_type seed = 123456u;
     const siv::PerlinNoise perlin{seed};
 
     float centerX = x - ISLAND_SIZE * size / 2;

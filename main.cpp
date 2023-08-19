@@ -82,6 +82,7 @@ protected:
 
     float size = SIZE;
     float heightMap[ISLAND_SIZE][ISLAND_SIZE];
+    siv::PerlinNoise::seed_type seed;
     int instances = 0;
     float center = ISLAND_SIZE * size / 2; // 7.5
     bool spot = false;
@@ -224,6 +225,11 @@ protected:
         createCubeMesh(rock.vertices, rock.indices, 0, 0, 0, 0, size);
         createCubeMesh(sun.vertices, sun.indices, 0, center, 3, center, 10.0f);
         createSphereMesh(sky.vertices, sky.indices);
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<siv::PerlinNoise::seed_type> dis;
+        seed = dis(gen);
 
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
