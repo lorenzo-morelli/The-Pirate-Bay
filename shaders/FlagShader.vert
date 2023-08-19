@@ -25,12 +25,13 @@ layout(location = 1) out vec3 fragNorm;
 layout(location = 2) out vec2 fragUV;
 
 void main() {
+    float size
     float x = pos.x;
     float y = pos.y;
     float z = pos.z;
     float t = gubo.time;
 
-    vec3 vpos = vec3(x, -z + 2.0f, y + sin(x + t*10.f))*0.1f;;
+    vec3 vpos = vec3(x, -z + 2.0f, y + sin(x + t*10.f))*0.1f + vec3(7.5f,0.0f,7.5f);
 
     gl_Position = ubo.mvpMat * vec4(vpos, 1.0);
     fragPos = (ubo.mMat * vec4(vpos, 1.0)).xyz;

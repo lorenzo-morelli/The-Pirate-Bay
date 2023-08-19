@@ -8,6 +8,7 @@
 #define INSTANCE_MAX 5000
 #define ISLAND_SIZE 300
 #define ROCKS 100
+#define PALMS 25
 #define SIZE 0.05f
 
 using namespace glm;
@@ -50,6 +51,11 @@ struct PositionsBuffer {
 struct PositionRocks {
     alignas(16) vec4 pos[ROCKS];
 } positionRocks;
+
+struct PositionPalms {
+    alignas(16) vec4 pos[PALMS];
+} positionPalms;
+
 
 vector<int> movingCubes;
 
@@ -156,12 +162,14 @@ protected:
 
         DSLPalmTrunk.init(this, {
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS}
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS},
+                {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
         });
 
         DSLPalmLeaf.init(this, {
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS}
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS},
+                {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
         });
 
         DSLSun.init(this, {
@@ -245,6 +253,28 @@ protected:
                 }
         }
 
+        normal_distribution<float> distribution(ISLAND_SIZE/2, ISLAND_SIZE/6);
+        default_random_engine generator;
+        for(int p = 0; p<PALMS;p++) {
+            int xRandom = rand() % (ISLAND_SIZE);
+            int zRandom = rand() % (ISLAND_SIZE);
+
+            // Generate random coordinates within a smaller range around the center using Gaussian distribution
+            xRandom = round(distribution(generator));
+            zRandom = round(distribution(generator));
+
+            cout << "x: " << xRandom;
+            cout << "; z: " << zRandom;
+
+            // Ensure generated coordinates are within island bounds
+            xRandom = std::max(0, std::min(ISLAND_SIZE - 1, xRandom));
+            zRandom = std::max(0, std::min(ISLAND_SIZE - 1, zRandom));
+
+            positionPalms.pos[p] = vec4(xRandom*size,heightMap[xRandom][zRandom],zRandom*size,1.0f);
+            //recompute heightMap
+            //heightMap[xRandom][zRandom] = INFINITY; //obstacle
+        }
+
         txt.init(this, &demoText);
     }
 
@@ -298,12 +328,14 @@ protected:
 
         DSPalmTrunk.init(this, &DSLPalmTrunk, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
-                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+                {2, UNIFORM, sizeof(PositionRocks),           nullptr}
         });
 
         DSPalmLeaf.init(this, &DSLPalmLeaf, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
-                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
+                {2, UNIFORM, sizeof(PositionRocks),           nullptr}
         });
 
         DSSun.init(this, &DSLSun, {
@@ -359,6 +391,8 @@ protected:
         DSLIsland.cleanup();
         DSLSpawn.cleanup();
         DSLRocks.cleanup();
+        DSLPalmTrunk.cleanup();
+        DSLPalmLeaf.cleanup();
         DSLSea.cleanup();
         DSLSky.cleanup();
         DSLFlag.cleanup();
@@ -422,7 +456,7 @@ protected:
         vkCmdDrawIndexed(
                 commandBuffer,
                 static_cast<uint32_t>(palmTrunk.indices.size()),
-                1,
+                PALMS,
                 0,
                 0,
                 0
@@ -434,7 +468,7 @@ protected:
         vkCmdDrawIndexed(
                 commandBuffer,
                 static_cast<uint32_t>(palmLeaf.indices.size()),
-                1,
+                PALMS,
                 0,
                 0,
                 0
@@ -566,9 +600,11 @@ protected:
 
         DSPalmTrunk.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSPalmTrunk.map((int) currentImage, &gubo, sizeof(gubo), 1);
+        DSPalmTrunk.map((int) currentImage, &positionPalms, sizeof(positionPalms), 2);
 
         DSPalmLeaf.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSPalmLeaf.map((int) currentImage, &gubo, sizeof(gubo), 1);
+        DSPalmLeaf.map((int) currentImage, &positionPalms, sizeof(positionPalms), 2);
 
         DSSun.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSun.map((int) currentImage, &gubo, sizeof(gubo), 1);
