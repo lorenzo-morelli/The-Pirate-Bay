@@ -33,8 +33,8 @@ void main() {
     float z = pos.z;
     float t = gubo.time;
 
-
-    vec3 vpos = vec3(x, y + 0.01f*sin(x + z + t*5), z)*0.5f;
+    float wind = 0.02f*sin(x + z + y + t*2.5);
+    vec3 vpos = vec3(x - wind , y + wind, z- wind)*0.5f;
     vpos += positionPalms.positions[gl_InstanceIndex].xyz;
 
     gl_Position = ubo.mvpMat * vec4(vpos, 1.0);

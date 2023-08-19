@@ -23,6 +23,6 @@ void main() {
         outColor =
         outColor = vec4(texture(texDay, outUV).rgb, 1.0f);
     } else {
-        outColor = vec4(texture(texNight, outUV).rgb, 1.0f);;
+        outColor = vec4(texture(texNight, outUV).rgb, 1.0f);
     }
 }
