@@ -60,17 +60,17 @@ protected:
     // Here you list all the Vulkan objects you need:
 
     // Descriptor Layouts [what will be passed to the shaders]
-    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{}, DSLSun{}, DSLRocks{}, DSLFlag{}, DSLPalm{};
+    DescriptorSetLayout DSLIsland{}, DSLSpawn{}, DSLSea{}, DSLSky{}, DSLSun{}, DSLRocks{}, DSLFlag{}, DSLPalmTrunk{}, DSLPalmLeaf{};
 
     // Pipelines [Shader couples]
     VertexDescriptor VD, VDuv;
-    Pipeline pipelineIsland, pipelineSpawn, pipelineRocks, pipelineSea, pipelineSky, pipelineSun, pipelineFlag, pipelinePalm;
+    Pipeline pipelineIsland, pipelineSpawn, pipelineRocks, pipelineSea, pipelineSky, pipelineSun, pipelineFlag, pipelinePalmTrunk,pipelinePalmLeaf;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
     Model<Vertex> island, sea, spawn, sun, rock;
-    Model<VertexUV> sky,flag, palm;
-    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun, DSRock, DSFlag, DSPalm;
-    Texture texSkyDay{}, texSkyNight{}, texBlackFlag{}, texPalm{};
+    Model<VertexUV> sky,flag, palmTrunk, palmLeaf;
+    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun, DSRock, DSFlag, DSPalmTrunk,DSPalmLeaf;
+    Texture texSkyDay{}, texSkyNight{}, texBlackFlag{};
 
     TextMaker txt;
 
@@ -154,10 +154,14 @@ protected:
                 {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
         });
 
-        DSLPalm.init(this, {
+        DSLPalmTrunk.init(this, {
                 {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS},
-                {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS}
+        });
+
+        DSLPalmLeaf.init(this, {
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS}
         });
 
         DSLSun.init(this, {
@@ -190,7 +194,8 @@ protected:
         pipelineSea.init(this, &VD, "shaders/SeaVert.spv", "shaders/SeaFrag.spv", {&DSLSea});
         pipelineSky.init(this, &VDuv, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
         pipelineFlag.init(this, &VDuv, "shaders/FlagVert.spv", "shaders/FlagFrag.spv", {&DSLFlag});
-        pipelinePalm.init(this, &VDuv, "shaders/FlagVert.spv", "shaders/FlagFrag.spv", {&DSLPalm});
+        pipelinePalmTrunk.init(this, &VDuv, "shaders/PalmTrunkVert.spv", "shaders/PalmTrunkFrag.spv", {&DSLPalmTrunk});
+        pipelinePalmLeaf.init(this, &VDuv, "shaders/PalmLeafVert.spv", "shaders/PalmLeafFrag.spv", {&DSLPalmLeaf});
         pipelineSun.init(this, &VD, "shaders/SunVert.spv", "shaders/SunFrag.spv", {&DSLSun});
 
         pipelineIsland.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
@@ -200,7 +205,8 @@ protected:
         pipelineSky.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineSun.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelineFlag.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
-        pipelinePalm.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+        pipelinePalmTrunk.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
+        pipelinePalmLeaf.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
@@ -219,10 +225,10 @@ protected:
         sky.initMesh(this, &VDuv);
         flag.initMesh(this,&VDuv);
 
-        palm.init(this,  &VDuv, "models/test.obj", OBJ);
+        palmTrunk.init(this,  &VDuv, "models/PalmTrunk.obj", OBJ);
+        palmLeaf.init(this,  &VDuv, "models/PalmLeaf.obj",OBJ);
 
         texBlackFlag.init(this,"textures/blackFlag.png");
-        texPalm.init(this,"textures/testBaked.jpg");
         texSkyDay.init(this, "textures/skyDay.jpg");
         texSkyNight.init(this, "textures/skyNight.jpg");
 
@@ -251,7 +257,8 @@ protected:
         pipelineSea.create();
         pipelineSky.create();
         pipelineFlag.create();
-        pipelinePalm.create();
+        pipelinePalmTrunk.create();
+        pipelinePalmLeaf.create();
         pipelineSun.create();
 
         DSIsland.init(this, &DSLIsland, {
@@ -289,10 +296,14 @@ protected:
                 {2, TEXTURE, 0,                                 &texBlackFlag}
         });
 
-        DSPalm.init(this, &DSLPalm, {
+        DSPalmTrunk.init(this, &DSLPalmTrunk, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
-                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-                {2, TEXTURE, 0,                                 &texPalm}
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
+        });
+
+        DSPalmLeaf.init(this, &DSLPalmLeaf, {
+                {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
+                {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
         });
 
         DSSun.init(this, &DSLSun, {
@@ -309,7 +320,8 @@ protected:
         pipelineSpawn.cleanup();
         pipelineSea.cleanup();
         pipelineFlag.cleanup();
-        pipelinePalm.cleanup();
+        pipelinePalmTrunk.cleanup();
+        pipelinePalmLeaf.cleanup();
         pipelineRocks.cleanup();
         pipelineSky.cleanup();
         pipelineSun.cleanup();
@@ -317,7 +329,8 @@ protected:
         DSIsland.cleanup();
         DSSea.cleanup();
         DSFlag.cleanup();
-        DSPalm.cleanup();
+        DSPalmTrunk.cleanup();
+        DSPalmLeaf.cleanup();
         DSRock.cleanup();
         DSSpawn.cleanup();
         DSSky.cleanup();
@@ -332,12 +345,12 @@ protected:
         texSkyDay.cleanup();
         texSkyNight.cleanup();
         texBlackFlag.cleanup();
-        texPalm.cleanup();
 
         island.cleanup();
         sea.cleanup();
         flag.cleanup();
-        palm.cleanup();
+        palmTrunk.cleanup();
+        palmLeaf.cleanup();
         spawn.cleanup();
         rock.cleanup();
         sun.cleanup();
@@ -353,7 +366,8 @@ protected:
 
         pipelineSpawn.destroy();
         pipelineFlag.destroy();
-        pipelinePalm.destroy();
+        pipelinePalmTrunk.destroy();
+        pipelinePalmLeaf.destroy();
         pipelineRocks.destroy();
         pipelineIsland.destroy();
         pipelineSea.destroy();
@@ -402,12 +416,24 @@ protected:
                 0
         );
 
-        pipelinePalm.bind(commandBuffer);
-        palm.bind(commandBuffer);
-        DSPalm.bind(commandBuffer, pipelinePalm, currentImage);
+        pipelinePalmTrunk.bind(commandBuffer);
+        palmTrunk.bind(commandBuffer);
+        DSPalmTrunk.bind(commandBuffer, pipelinePalmTrunk, currentImage);
         vkCmdDrawIndexed(
                 commandBuffer,
-                static_cast<uint32_t>(palm.indices.size()),
+                static_cast<uint32_t>(palmTrunk.indices.size()),
+                1,
+                0,
+                0,
+                0
+        );
+
+        pipelinePalmLeaf.bind(commandBuffer);
+        palmLeaf.bind(commandBuffer);
+        DSPalmLeaf.bind(commandBuffer, pipelinePalmLeaf, currentImage);
+        vkCmdDrawIndexed(
+                commandBuffer,
+                static_cast<uint32_t>(palmLeaf.indices.size()),
                 1,
                 0,
                 0,
@@ -538,8 +564,11 @@ protected:
         DSFlag.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSFlag.map((int) currentImage, &gubo, sizeof(gubo), 1);
 
-        DSPalm.map((int) currentImage, &ubo, sizeof(ubo), 0);
-        DSPalm.map((int) currentImage, &gubo, sizeof(gubo), 1);
+        DSPalmTrunk.map((int) currentImage, &ubo, sizeof(ubo), 0);
+        DSPalmTrunk.map((int) currentImage, &gubo, sizeof(gubo), 1);
+
+        DSPalmLeaf.map((int) currentImage, &ubo, sizeof(ubo), 0);
+        DSPalmLeaf.map((int) currentImage, &gubo, sizeof(gubo), 1);
 
         DSSun.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSSun.map((int) currentImage, &gubo, sizeof(gubo), 1);
