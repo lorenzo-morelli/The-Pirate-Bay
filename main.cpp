@@ -661,11 +661,11 @@ protected:
         static float spawnTime = 0.0f;
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) && spawnTime <= 0.0f) { // with gravity
             spawnCube(true);
-            spawnTime = 2.0f;
+            spawnTime = 1.0f;
         }
         if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) && spawnTime <= 0.0f) { // without gravity
             spawnCube(false);
-            spawnTime = 2.0f;
+            spawnTime = 1.0f;
         }
         spawnTime -= 0.1f;
 
