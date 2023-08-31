@@ -287,12 +287,16 @@ protected:
             cout << "; z: " << zRandom;
 
             // Ensure generated coordinates are within island bounds
-            xRandom = std::max(0, std::min(ISLAND_SIZE - 1, xRandom));
-            zRandom = std::max(0, std::min(ISLAND_SIZE - 1, zRandom));
+            xRandom = std::max(2, std::min(ISLAND_SIZE - 1, xRandom)); //2 is size of Palm collider box
+            zRandom = std::max(2, std::min(ISLAND_SIZE - 1, zRandom));
 
             pos = vec4(xRandom * size, heightMap[xRandom][zRandom], zRandom * size, 1.0f);
             //recompute heightMap
-            //heightMap[xRandom][zRandom] = INFINITY; //obstacle
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < 2; j++) {
+                        heightMap[xRandom - i][zRandom - j] = FLT_MAX;
+                }
+            }
         }
 
         txt.init(this, &demoText);
@@ -739,8 +743,13 @@ protected:
         velocity.y -= 98.0f * deltaT;
 
         // Update position based on velocity
-        Pos = Pos + velocity * deltaT;
+        vec3 nextPos = Pos + velocity * deltaT;
+        float nextGroundLevel = heightMap[(int) (nextPos.x / size)][(int) (nextPos.z / size)];
+        float diffHeight = abs(nextGroundLevel - groundLevel);
 
+        if(diffHeight<1.0f){ //in this way can't go over high colliders (like palms)
+            Pos = nextPos;
+        }
 
         // Check for collision with the ground
         if (Pos.y <= groundLevel) {
@@ -753,16 +762,15 @@ protected:
         if (glfwGetKey(window, GLFW_KEY_SPACE) && Pos.y <= groundLevel + 0.001f) {
             cout << "Jumping\n";
             // Only allow jumping if the object is very close to the ground (avoid double jumps)
-            jumpTime = 5.0f;
+            jumpTime = 3.0f;
         }
 
         if (jumpTime >= 0.0f) {
             velocity.y += jumpTime * jumpTime;
-            jumpTime -= 0.5f;
+            Pos.y += velocity.y * deltaT;
+            jumpTime -= 0.1f;
         }
 
-        // Update the position again after the jump
-        Pos = Pos + velocity * deltaT;
     }
 
     void gameLogic(float deltaT, vec3 r) {
