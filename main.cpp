@@ -234,10 +234,10 @@ protected:
         createGrid(island.vertices, island.indices);
         createPlane(sea.vertices, sea.indices);
         createPlaneWithUV(flag.vertices, flag.indices);
-        createCubeMesh(flagPole.vertices, flagPole.indices, 0, 0, 0, 0, 1.0f);
-        createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0, size);
-        createCubeMesh(rock.vertices, rock.indices, 0, 0, 0, 0, size);
-        createCubeMesh(sun.vertices, sun.indices, 0, center, 3, center, 10.0f);
+        createCubeMesh(flagPole.vertices, flagPole.indices, 0, 0, 0, 0, 0, 1.0f);
+        createCubeMesh(spawn.vertices, spawn.indices, 0, 0, 0, 0, 0, size);
+        createCubeMesh(rock.vertices, rock.indices, 0, 0, 0, 0, 0, size);
+        createCubeMesh(sun.vertices, sun.indices, 0, center, 3, center, 0, 10.0f);
         createSphereMesh(sky.vertices, sky.indices);
 
         std::random_device rd;
@@ -727,8 +727,13 @@ protected:
     void gamePhysics(float deltaT, vec3 m) {
         const float MOVE_SPEED = 1.0f;
         static float jumpTime = 0.0f;
-        float groundLevel = heightMap[(int) (Pos.x / size)][(int) (Pos.z / size)];
-
+        float groundLevel;
+        int gridX = (int) (Pos.x / size);
+        int gridZ = (int) (Pos.z / size);
+        if (gridX >= 0 && gridX <= ISLAND_SIZE && gridZ >= 0 && gridZ <= ISLAND_SIZE)
+            groundLevel = heightMap[(int) (Pos.x / size)][(int) (Pos.z / size)];
+        else
+            groundLevel = 0.0f;
 
         // Position
         vec3 ux = rotate(mat4(1.0f), Yaw, vec3(0, 1, 0)) * vec4(1, 0, 0, 1);
@@ -813,8 +818,7 @@ protected:
 
     void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
 
-    static void
-    createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize);
+    static void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float height, float cubeSize);
 
     static void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
 

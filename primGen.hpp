@@ -1,14 +1,14 @@
 using namespace std;
 
-void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize) {
 
+void Main::createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float height, float cubeSize) {
     float startX = x;
     float endX = x + cubeSize;
 
     float startZ = z;
     float endZ = z + cubeSize;
 
-    float startY = y;
+    float startY = y - height;
     float endY = y + cubeSize;
 
     //far
@@ -73,7 +73,7 @@ void Main::createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx) {
             int offset = (int) vDef.size();
             heightMap[i][j] = perlinNoise((float) i * size, (float) j * size);
             float noise = heightMap[i][j];
-            createCubeMesh(vDef, vIdx, offset, (float) i * size, noise, (float) j * size, size);
+            createCubeMesh(vDef, vIdx, offset, (float) i * size, noise,(float) j * size, 1.0f,size);
         }
     }
 }
@@ -200,14 +200,13 @@ float Main::perlinNoise(float x, float y) const {
     float centerY = y - ISLAND_SIZE * size / 2;
     float distanceFromCenter = sqrt(centerX * centerX + centerY * centerY);
 
-    // Define parameters for the Gaussian RBF
     float amplitude = 1.5f; // Amplitude of the RBF
     float sigmaSquared = 0.01f; // Variance of the RBF
 
     // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
     float perlinValue = (float) perlin.octave2D_01(x * 0.5f, y * 0.5f, 4);
-    float smallNoise = size*0.01f*(rand() % 10);
+    //float smallNoise = size*0.01f*(rand() % 10);
     float normalizedDistanceFromCenter = distanceFromCenter / 150.0f; // Normalize distance to range [0,1]
     normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
-    return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared) + smallNoise;
+    return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
 }
