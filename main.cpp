@@ -207,8 +207,8 @@ protected:
         // Pipelines [Shader couples]
         // The last array, is a vector of pointer to the layouts of the sets that will
         // be used in this pipeline. The first element will be set 0, and so on...
-        pipelineIsland.init(this, &VD, "shaders/PhongVert.spv", "shaders/ToonFrag.spv", {&DSLIsland});
-        pipelineSpawn.init(this, &VD, "shaders/PhongCubesVert.spv", "shaders/ToonCubeFrag.spv", {&DSLSpawn});
+        pipelineIsland.init(this, &VD, "shaders/IslandVert.spv", "shaders/IslandFrag.spv", {&DSLIsland});
+        pipelineSpawn.init(this, &VD, "shaders/SpawnVert.spv", "shaders/SpawnFrag.spv", {&DSLSpawn});
         pipelineRocks.init(this, &VD, "shaders/RockVert.spv", "shaders/RockFrag.spv", {&DSLRocks});
         pipelineSea.init(this, &VD, "shaders/SeaVert.spv", "shaders/SeaFrag.spv", {&DSLSea});
         pipelineSky.init(this, &VDuv, "shaders/SkyVert.spv", "shaders/SkyFrag.spv", {&DSLSky});
