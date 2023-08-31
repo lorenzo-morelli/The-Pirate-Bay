@@ -116,6 +116,9 @@ protected:
         setsInPool = 400;
 
         Ar = 4.0f / 3.0f;
+
+        iconPath = "textures/Safeimagekit-resized-img.png";
+
     }
 
     // What to do when the window changes size
@@ -577,6 +580,7 @@ protected:
     void updateUniformBuffer(uint32_t currentImage) override {
         GlobalUniformBufferObject gubo{};
         UniformBufferObject ubo{};
+
 
 //        gubo.spot = spot;
 //        static float spotTime = 0.0f;

@@ -323,6 +323,7 @@ protected:
 	int uniformBlocksInPool;
 	int texturesInPool;
 	int setsInPool;
+    const char *iconPath;
 
     GLFWwindow* window;
     VkInstance instance;
@@ -376,6 +377,9 @@ protected:
         glfwSetWindowUserPointer(window, this);
         glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 
+        GLFWimage icons[1];
+        icons[0].pixels = stbi_load(iconPath, &icons[0].width, &icons[0].height, 0, 4);
+        glfwSetWindowIcon(window, 1, icons);
     }
 
 	virtual void onWindowResize(int w, int h) = 0;
