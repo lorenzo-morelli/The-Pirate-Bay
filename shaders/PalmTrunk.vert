@@ -33,8 +33,7 @@ void main() {
     float z = pos.z;
     float t = gubo.time;
 
-    float random = fract(4242427.0f/gl_InstanceIndex);
-    float size = random;
+    float size = 0.42f;
 
     vec3 vpos = vec3(x, y, z)*size;
     vpos += positionPalms.positions[gl_InstanceIndex].xyz;
