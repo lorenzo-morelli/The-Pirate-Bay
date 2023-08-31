@@ -601,19 +601,21 @@ protected:
 
         static float L_time = 0.0f;
         L_time += deltaT;
-        gubo.time = L_time / 2;
+        gubo.time = L_time/10.0f;
 
         gubo.spot = spot;
         static float spotTime = 0.0f;
+        /*
         if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
             spotTime = 1.0f;
             spot = !spot;
         }
         spotTime -= 0.1f;
-//TODO: switch to day/night
+        */
+        //TODO: switch to day/night
 
-//        if (sin(gubo.time) > 0) gubo.spot = false;
-//        else gubo.spot = true;
+        if (sin(gubo.time) > 0) gubo.spot = false;
+        else gubo.spot = true;
 
         if (!gubo.spot) {
             gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));

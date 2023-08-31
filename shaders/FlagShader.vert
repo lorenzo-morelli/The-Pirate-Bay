@@ -29,7 +29,7 @@ void main() {
     float x = pos.x*size;
     float y = pos.y*size;
     float z = pos.z*size;
-    float t = gubo.time;
+    float t = gubo.time*10.0f;
 
     float wind = 0.1f*sin(-z*5.0f + x*7.5f + t*10.f);
     float flagStart = -20.0f*size;
