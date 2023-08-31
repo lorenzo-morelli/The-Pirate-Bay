@@ -618,7 +618,7 @@ protected:
 
         if (!gubo.spot) {
             gubo.lightDir = normalize(vec3(cos(gubo.time), sin(gubo.time), 0.0f));
-            gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f); // white
+            gubo.lightColor = (1.0f-sin(gubo.time))*vec4(1.0f, 0.0f, 0.0f, 1.0f);
             gubo.eyePos = cameraPos;
         } else {
             float dang = Pitch + radians(15.0f);

@@ -31,7 +31,6 @@ void main() {
     vec3 darkColor = vec3(0.0f, 0.0f, 0.0f)/255.0f;
     vec3 brightColor = vec3(80.0f, 50.0f, 50.0f)/255.f;
     vec3 diffuse = texture(texFlag, fragUV).rgb; // texture
-    vec3 ambient = brightColor * 0.025f;
 
     if (gubo.spot) {
         vec3 lightDir = gubo.lightPos - fragPos;
@@ -41,10 +40,12 @@ void main() {
         vec3 lightColor = gubo.lightColor.rgb * fadeOut * dim;
         
         vec3 specular = vec3(pow(clamp(dot(norm, normalize(lightDir + eyeDir)), 0.0f, 1.0f), 160.0f));
-        vec3 ambient = darkColor * 0.025f;
 
-        outColor = vec4(clamp((diffuse + specular) * lightColor.rgb + ambient, 0.0f, 1.0f), 1.0f);
+        outColor = vec4(clamp((diffuse + specular) * lightColor.rgb, 0.0f, 1.0f), 1.0f);
     }
-    else outColor = vec4(diffuse + ambient, 1.0f);
+    else{
+        vec3 ambient = gubo.lightColor.xyz * 0.25f;
+        outColor = vec4(diffuse + ambient, 1.0f);
+    }
 
 }

@@ -31,7 +31,7 @@ void main() {
 
 	float f2 = cos(x + sin(z + t) + t);
 	float trigo = (sin (x - t) + cos(-x + y + t));
-	y = 0.1 + 0.1f*trigo*trigo;
+	y = 0.25 + 0.1f*trigo*trigo;
 	float smallWaves = 0.05f*f2;
 	y += smallWaves;
 

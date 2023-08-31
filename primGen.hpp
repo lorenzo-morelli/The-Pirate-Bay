@@ -200,12 +200,11 @@ float Main::perlinNoise(float x, float y) const {
     float centerY = y - ISLAND_SIZE * size / 2;
     float distanceFromCenter = sqrt(centerX * centerX + centerY * centerY);
 
-    float amplitude = 1.5f; // Amplitude of the RBF
-    float sigmaSquared = 0.01f; // Variance of the RBF
+    float amplitude = 2.0f; // Amplitude of the RBF
+    float sigmaSquared = 0.005f; // Variance of the RBF
 
     // Calculate a value using Perlin noise and Gaussian RBF with sigmoid smoothing
     float perlinValue = (float) perlin.octave2D_01(x * 0.5f, y * 0.5f, 4);
-    //float smallNoise = size*0.01f*(rand() % 10);
     float normalizedDistanceFromCenter = distanceFromCenter / 150.0f; // Normalize distance to range [0,1]
     normalizedDistanceFromCenter *= normalizedDistanceFromCenter; // Square to increase effect towards center
     return amplitude * perlinValue * exp(-normalizedDistanceFromCenter * distanceFromCenter / sigmaSquared);
