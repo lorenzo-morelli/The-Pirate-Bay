@@ -23,11 +23,7 @@ layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec3 fragNorm;
 
 void main() {
-//	float x = pos.x;
-//	float y = pos.y;
-//	float z = pos.z;
 	float time = gubo.time;
-
 	float radius = 80.0f;
 
 

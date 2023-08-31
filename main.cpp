@@ -67,21 +67,21 @@ protected:
 
     // Descriptor Layouts [what will be passed to the shaders]
     DescriptorSetLayout DSLIsland{}, DSLSpawn{},
-    DSLSea{}, DSLSky{}, DSLSun{},
-    DSLRocks{}, DSLFlag{}, DSLFlagPole{},
-    DSLPalmTrunk{}, DSLPalmLeaf{};
+            DSLSea{}, DSLSky{}, DSLSun{},
+            DSLRocks{}, DSLFlag{}, DSLFlagPole{},
+            DSLPalmTrunk{}, DSLPalmLeaf{};
 
     // Pipelines [Shader couples]
     VertexDescriptor VD, VDuv;
     Pipeline pipelineIsland, pipelineSpawn,
-    pipelineRocks, pipelineSea, pipelineSky,
-    pipelineSun, pipelineFlag, pipelineFlagPole,
-    pipelinePalmTrunk,pipelinePalmLeaf;
+            pipelineRocks, pipelineSea, pipelineSky,
+            pipelineSun, pipelineFlag, pipelineFlagPole,
+            pipelinePalmTrunk, pipelinePalmLeaf;
 
     // Models, textures and Descriptors (values assigned to the uniforms)
     Model<Vertex> island, sea, spawn, sun, rock, flagPole;
-    Model<VertexUV> sky,flag, palmTrunk, palmLeaf;
-    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun, DSRock, DSFlag, DSFlagPole, DSPalmTrunk,DSPalmLeaf;
+    Model<VertexUV> sky, flag, palmTrunk, palmLeaf;
+    DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun, DSRock, DSFlag, DSFlagPole, DSPalmTrunk, DSPalmLeaf;
     Texture texSkyDay{}, texSkyNight{}, texBlackFlag{};
 
     TextMaker txt;
@@ -168,19 +168,19 @@ protected:
         });
 
         DSLFlagPole.init(this, {
-                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS}
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
         });
 
         DSLPalmTrunk.init(this, {
-                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS},
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
                 {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
         });
 
         DSLPalmLeaf.init(this, {
-                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_VERTEX_BIT},
-                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,         VK_SHADER_STAGE_ALL_GRAPHICS},
+                {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
+                {1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
                 {2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT}
         });
 
@@ -251,32 +251,34 @@ protected:
         sea.initMesh(this, &VD);
         sun.initMesh(this, &VD);
         sky.initMesh(this, &VDuv);
-        flag.initMesh(this,&VDuv);
-        flagPole.initMesh(this,&VD);
+        flag.initMesh(this, &VDuv);
+        flagPole.initMesh(this, &VD);
 
-        palmTrunk.init(this,  &VDuv, "models/PalmTrunk.obj", OBJ);
-        palmLeaf.init(this,  &VDuv, "models/PalmLeaf.obj",OBJ);
+        palmTrunk.init(this, &VDuv, "models/PalmTrunk.obj", OBJ);
+        palmLeaf.init(this, &VDuv, "models/PalmLeaf.obj", OBJ);
 
-        texBlackFlag.init(this,"textures/blackFlag.png");
+        texBlackFlag.init(this, "textures/blackFlag.png");
         texSkyDay.init(this, "textures/skyDay.jpg");
         texSkyNight.init(this, "textures/skyNight.jpg");
 
-        for(int r = 0; r<ROCKS;r++) {
-            int xRandom = rand() % (ISLAND_SIZE-5); //rock size is 5 cubes
-            int zRandom = rand() % (ISLAND_SIZE-5);
-                positionRocks.pos[r] = vec4(xRandom*size,heightMap[xRandom][zRandom],zRandom*size,1.0f);
-                //recompute heightMap
-                float heightRock = heightMap[xRandom][zRandom] + 5.0f*size - 0.25f -size; //5.0f*size is rockSize , 0.25 is rock offset
-                for(int i = 0; i<5;i++){
-                    for(int j = 0; j<5;j++){
-                        if(heightMap[xRandom + i][zRandom + j]<heightRock) heightMap[xRandom + i][zRandom + j] = heightRock;
-                    }
+        for (int r = 0; r < ROCKS; r++) {
+            int xRandom = rand() % (ISLAND_SIZE - 5); //rock size is 5 cubes
+            int zRandom = rand() % (ISLAND_SIZE - 5);
+            positionRocks.pos[r] = vec4(xRandom * size, heightMap[xRandom][zRandom], zRandom * size, 1.0f);
+            //recompute heightMap
+            float heightRock = heightMap[xRandom][zRandom] + 5.0f * size - 0.25f -
+                               size; //5.0f*size is rockSize , 0.25 is rock offset
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    if (heightMap[xRandom + i][zRandom + j] < heightRock)
+                        heightMap[xRandom + i][zRandom + j] = heightRock;
                 }
+            }
         }
 
-        normal_distribution<float> distribution(ISLAND_SIZE/2, ISLAND_SIZE/6);
+        normal_distribution<float> distribution(ISLAND_SIZE / 2, ISLAND_SIZE / 6);
         default_random_engine generator;
-        for(int p = 0; p<PALMS;p++) {
+        for (int p = 0; p < PALMS; p++) {
             int xRandom = rand() % (ISLAND_SIZE);
             int zRandom = rand() % (ISLAND_SIZE);
 
@@ -291,7 +293,7 @@ protected:
             xRandom = std::max(0, std::min(ISLAND_SIZE - 1, xRandom));
             zRandom = std::max(0, std::min(ISLAND_SIZE - 1, zRandom));
 
-            positionPalms.pos[p] = vec4(xRandom*size,heightMap[xRandom][zRandom],zRandom*size,1.0f);
+            positionPalms.pos[p] = vec4(xRandom * size, heightMap[xRandom][zRandom], zRandom * size, 1.0f);
             //recompute heightMap
             //heightMap[xRandom][zRandom] = INFINITY; //obstacle
         }
@@ -327,7 +329,7 @@ protected:
         DSRock.init(this, &DSLRocks, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-                {2, UNIFORM, sizeof(PositionRocks),           nullptr}
+                {2, UNIFORM, sizeof(PositionRocks),             nullptr}
         });
 
         DSSea.init(this, &DSLSea, {
@@ -356,13 +358,13 @@ protected:
         DSPalmTrunk.init(this, &DSLPalmTrunk, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-                {2, UNIFORM, sizeof(PositionRocks),           nullptr}
+                {2, UNIFORM, sizeof(PositionRocks),             nullptr}
         });
 
         DSPalmLeaf.init(this, &DSLPalmLeaf, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-                {2, UNIFORM, sizeof(PositionRocks),           nullptr}
+                {2, UNIFORM, sizeof(PositionRocks),             nullptr}
         });
 
         DSSun.init(this, &DSLSun, {
@@ -575,15 +577,13 @@ protected:
         GlobalUniformBufferObject gubo{};
         UniformBufferObject ubo{};
 
-        gubo.spot = spot;
-        static float spotTime = 0.0f;
-        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
-            spotTime = 1.0f;
-            spot = !spot;
-        }
-        spotTime -= 0.1f;
-
-
+//        gubo.spot = spot;
+//        static float spotTime = 0.0f;
+//        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
+//            spotTime = 1.0f;
+//            spot = !spot;
+//        }
+//        spotTime -= 0.1f;
 
         if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, GL_TRUE);
 
@@ -599,28 +599,33 @@ protected:
         ubo.mvpMat = ViewPrj;
         ubo.nMat = inverse(transpose(ubo.mMat));
 
-        switch ((int) gubo.spot) {
-            case 0: {
-                gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
-                gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-                gubo.eyePos = cameraPos;
-                break;
-            }
-            case 1: {
-                float dang = Pitch + radians(15.0f);
-                gubo.lightPos = Pos + vec3(0, 1, 0);
-                gubo.lightDir = vec3(cos(dang) * sin(Yaw), sin(dang), cos(dang) * cos(Yaw));
-                gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-                gubo.eyePos = cameraPos;
-                break;
-            }
-            default:
-                break;
-        }
-
         static float L_time = 0.0f;
         L_time += deltaT;
-        gubo.time = L_time;
+        gubo.time = L_time / 2;
+
+        gubo.spot = spot;
+        static float spotTime = 0.0f;
+        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
+            spotTime = 1.0f;
+            spot = !spot;
+        }
+        spotTime -= 0.1f;
+//TODO: switch to day/night
+
+//        if (sin(gubo.time) > 0) gubo.spot = false;
+//        else gubo.spot = true;
+
+        if (!gubo.spot) {
+            gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
+            gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            gubo.eyePos = cameraPos;
+        } else {
+            float dang = Pitch + radians(15.0f);
+            gubo.lightPos = Pos + vec3(0, 1, 0);
+            gubo.lightDir = vec3(cos(dang) * sin(Yaw), sin(dang), cos(dang) * cos(Yaw));
+            gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            gubo.eyePos = cameraPos;
+        }
 
         DSIsland.map((int) currentImage, &ubo, sizeof(ubo), 0);
         DSIsland.map((int) currentImage, &gubo, sizeof(gubo), 1);
@@ -669,17 +674,17 @@ protected:
         }
         spawnTime -= 0.1f;
 
-        for (vector<int>::iterator it = movingCubes.begin(); it != movingCubes.end();)
-        {
+        for (vector<int>::iterator it = movingCubes.begin(); it != movingCubes.end();) {
             int j = *it; //access value pointed by iterator (the ID of the moving cube so to update the position)
 
             if (positionsBuffer.hasGravity[j]) {
-                float level = heightMap[(int)(positionsBuffer.pos[j].x/size)][(int)(positionsBuffer.pos[j].z/size)];
+                float level = heightMap[(int) (positionsBuffer.pos[j].x / size)][(int) (positionsBuffer.pos[j].z /
+                                                                                        size)];
 
                 if (positionsBuffer.pos[j].y <= level) {
                     // Remove cube from movingCubes since it touched the ground
                     positionsBuffer.pos[j].y = level;
-                    it = movingCubes.erase(it) ; // Erase and get updated iterator pointing to next element
+                    it = movingCubes.erase(it); // Erase and get updated iterator pointing to next element
                 } else {
                     positionsBuffer.pos[j].y -= 98.0f * deltaT * deltaT;
                     ++it; // Move iterator to next element
@@ -698,12 +703,12 @@ protected:
 
         //compute heightMap (grid) coordiantes
 
-        int gridX = (int)(x/size);
-        int gridZ = (int)(z/size);
+        int gridX = (int) (x / size);
+        int gridZ = (int) (z / size);
 
         //grid alignment
-        x = gridX*size;
-        z = gridZ*size;
+        x = gridX * size;
+        z = gridZ * size;
 
 
         //increase terrain height by 1 cube (size)
@@ -720,7 +725,7 @@ protected:
     void gamePhysics(float deltaT, vec3 m) {
         const float MOVE_SPEED = 1.0f;
         static float jumpTime = 0.0f;
-        float groundLevel = heightMap[(int)(Pos.x/size)][(int)(Pos.z/size)];
+        float groundLevel = heightMap[(int) (Pos.x / size)][(int) (Pos.z / size)];
 
 
         // Position
@@ -801,12 +806,20 @@ protected:
 
         ViewPrj = Prj * View;
     }
+
     float perlinNoise(float x, float y) const;
+
     void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
-    static void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize);
+
+    static void
+    createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float cubeSize);
+
     static void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
+
     static void createPlaneWithUV(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
+
     static void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
+
 };
 
 #include "primGen.hpp"
