@@ -729,8 +729,8 @@ protected:
         float groundLevel;
         int gridX = (int) (Pos.x / size);
         int gridZ = (int) (Pos.z / size);
-        if (gridX >= 0 && gridX <= ISLAND_SIZE && gridZ >= 0 && gridZ <= ISLAND_SIZE)
-            groundLevel = heightMap[(int) (Pos.x / size)][(int) (Pos.z / size)];
+        if (gridX >= 0 && gridX < ISLAND_SIZE && gridZ >= 0 && gridZ < ISLAND_SIZE)
+            groundLevel = heightMap[gridX][gridZ];
         else
             groundLevel = 0.0f;
 
