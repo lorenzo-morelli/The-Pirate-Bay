@@ -28,16 +28,15 @@ void main() {
     vec3 norm = normalize(fragNorm);
     vec3 eyeDir = normalize(gubo.eyePos.xyz - fragPos);
     float t = gubo.time;
-    vec3 lightTest = normalize(vec3(1.0f, 1.0f, 1.0f));
     vec3 darkColor = vec3(0.0f, 0.0f, 0.0f)/255.0f;
-    vec3 highColor = vec3(80.0f, 50.0f, 50.0f)/255.f;
+    vec3 brightColor = vec3(80.0f, 50.0f, 50.0f)/255.f;
     vec3 diffuse = texture(texFlag, fragUV).rgb; // texture
-    vec3 ambient = highColor * 0.025f;
+    vec3 ambient = brightColor * 0.025f;
 
     if (gubo.spot) {
         vec3 lightDir = gubo.lightPos - fragPos;
 
-        float dim = clamp(( dot(normalize(lightDir),gubo.lightDir) - cosout)/(cosin - cosout), 0.0f, 1.0f);
+        float dim = clamp((dot(normalize(lightDir),gubo.lightDir) - cosout)/(cosin - cosout), 0.0f, 1.0f);
         float fadeOut = pow(g/length(lightDir), beta);
         vec3 lightColor = gubo.lightColor.rgb * fadeOut * dim;
         

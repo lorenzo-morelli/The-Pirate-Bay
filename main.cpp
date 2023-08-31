@@ -87,11 +87,10 @@ protected:
     TextMaker txt;
 
     float size = SIZE;
-    float heightMap[ISLAND_SIZE][ISLAND_SIZE];
-    siv::PerlinNoise::seed_type seed;
+    float heightMap[ISLAND_SIZE][ISLAND_SIZE]{};
+    siv::PerlinNoise::seed_type seed{};
     int instances = 0;
-    float center = ISLAND_SIZE * size / 2; // 7.5
-    bool spot = false;
+    float center = ISLAND_SIZE * size / 2;
 
     // Other application parameters
     float Ar{};
@@ -278,13 +277,11 @@ protected:
 
         normal_distribution<float> distribution(ISLAND_SIZE / 2, ISLAND_SIZE / 6);
         default_random_engine generator;
-        for (int p = 0; p < PALMS; p++) {
-            int xRandom = rand() % (ISLAND_SIZE);
-            int zRandom = rand() % (ISLAND_SIZE);
+        for (auto & pos : positionPalms.pos) {
 
             // Generate random coordinates within a smaller range around the center using Gaussian distribution
-            xRandom = round(distribution(generator));
-            zRandom = round(distribution(generator));
+            int xRandom = round(distribution(generator));
+            int zRandom = round(distribution(generator));
 
             cout << "x: " << xRandom;
             cout << "; z: " << zRandom;
@@ -293,7 +290,7 @@ protected:
             xRandom = std::max(0, std::min(ISLAND_SIZE - 1, xRandom));
             zRandom = std::max(0, std::min(ISLAND_SIZE - 1, zRandom));
 
-            positionPalms.pos[p] = vec4(xRandom * size, heightMap[xRandom][zRandom], zRandom * size, 1.0f);
+            pos = vec4(xRandom * size, heightMap[xRandom][zRandom], zRandom * size, 1.0f);
             //recompute heightMap
             //heightMap[xRandom][zRandom] = INFINITY; //obstacle
         }
@@ -603,8 +600,6 @@ protected:
         L_time += deltaT;
         gubo.time = L_time/10.0f;
 
-        gubo.spot = spot;
-        static float spotTime = 0.0f;
         /*
         if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
             spotTime = 1.0f;
@@ -618,14 +613,14 @@ protected:
         else gubo.spot = true;
 
         if (!gubo.spot) {
-            gubo.lightDir = normalize(vec3(0.0f, 0.0f, 0.0f));
-            gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            gubo.lightDir = normalize(vec3(cos(gubo.time), sin(gubo.time), 0.0f));
+            gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f); // white
             gubo.eyePos = cameraPos;
         } else {
             float dang = Pitch + radians(15.0f);
             gubo.lightPos = Pos + vec3(0, 1, 0);
             gubo.lightDir = vec3(cos(dang) * sin(Yaw), sin(dang), cos(dang) * cos(Yaw));
-            gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            gubo.lightColor = vec4(1.0f, 1.0f, 1.0f, 1.0f); // white
             gubo.eyePos = cameraPos;
         }
 
@@ -676,7 +671,7 @@ protected:
         }
         spawnTime -= 0.1f;
 
-        for (vector<int>::iterator it = movingCubes.begin(); it != movingCubes.end();) {
+        for (auto it = movingCubes.begin(); it != movingCubes.end();) {
             int j = *it; //access value pointed by iterator (the ID of the moving cube so to update the position)
 
             if (positionsBuffer.hasGravity[j]) {
