@@ -35,13 +35,16 @@ void main() {
     vec3 ambient = highColor * 0.025f;
 
     if (gubo.spot) {
-        vec3 lightDir = normalize(gubo.lightPos - fragPos);
-        float dim = clamp((dot(normalize(lightDir), gubo.lightDir) - cosout) / (cosin - cosout), 0.0f, 1.0f);
-        float fadeOut = pow(float(g/((gubo.lightPos-fragPos)/lightDir)), beta);
-        vec3 lightColor = highColor * fadeOut * dim;
+        vec3 lightDir = gubo.lightPos - fragPos;
+
+        float dim = clamp(( dot(normalize(lightDir),gubo.lightDir) - cosout)/(cosin - cosout), 0.0f, 1.0f);
+        float fadeOut = pow(g/length(lightDir), beta);
+        vec3 lightColor = gubo.lightColor.rgb * fadeOut * dim;
+        
+        vec3 specular = vec3(pow(clamp(dot(norm, normalize(lightDir + eyeDir)), 0.0f, 1.0f), 160.0f));
         vec3 ambient = darkColor * 0.025f;
 
-        outColor = vec4(diffuse * lightColor.rgb + ambient, 1.0f);
+        outColor = vec4(clamp((diffuse + specular) * lightColor.rgb + ambient, 0.0f, 1.0f), 1.0f);
     }
     else outColor = vec4(diffuse + ambient, 1.0f);
 

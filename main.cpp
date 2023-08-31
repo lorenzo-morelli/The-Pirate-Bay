@@ -614,7 +614,7 @@ protected:
         */
         //TODO: switch to day/night
 
-        if (sin(gubo.time) > 0) gubo.spot = false;
+        if (sin(gubo.time) > -0.1) gubo.spot = false;
         else gubo.spot = true;
 
         if (!gubo.spot) {
