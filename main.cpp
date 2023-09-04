@@ -233,6 +233,11 @@ protected:
         pipelinePalmTrunk.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
         pipelinePalmLeaf.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, false);
 
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<siv::PerlinNoise::seed_type> dis;
+        seed = dis(gen);
+
         // Models, textures and Descriptors (values assigned to the uniforms)
         createGrid(island.vertices, island.indices);
         createPlane(sea.vertices, sea.indices);
@@ -242,11 +247,6 @@ protected:
         createCubeMesh(rock.vertices, rock.indices, 0, 0, 0, 0, 0, size);
         createCubeMesh(sun.vertices, sun.indices, 0, center, 3, center, 0, 10.0f);
         createSphereMesh(sky.vertices, sky.indices);
-
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<siv::PerlinNoise::seed_type> dis;
-        seed = dis(gen);
 
         island.initMesh(this, &VD);
         spawn.initMesh(this, &VD);
@@ -735,7 +735,7 @@ protected:
         int gridX = (int) (Pos.x / size);
         int gridZ = (int) (Pos.z / size);
         if (gridX >= 0 && gridX < ISLAND_SIZE && gridZ >= 0 && gridZ < ISLAND_SIZE)
-            groundLevel = heightMap[gridX][gridZ];
+            groundLevel = perlinNoise(Pos.x,Pos.z);
         else
             groundLevel = 0.0f;
 
