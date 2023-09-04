@@ -97,6 +97,7 @@ protected:
     mat4 ViewPrj{};
     vec3 Pos = vec3(10.0f, 0.0f, 10.0f);
     vec3 cameraPos{};
+    float camHeight = 0.5f;
     float Yaw = radians(0.0f);
     float Pitch = radians(0.0f);
     float Roll = radians(0.0f);
@@ -104,8 +105,8 @@ protected:
     // Here you set the main application parameters
     void setWindowParameters() override {
         // window size, titile and initial background
-        windowWidth = 800;
-        windowHeight = 600;
+        windowWidth = 1422;
+        windowHeight = 800;
         windowTitle = "The Pirate Bay ☠";
         windowResizable = GLFW_TRUE;
         initialBackgroundColor = {180.0f / 255.0f, 255.0f / 255.0f, 255.0 / 255.0f, 1.0f};
@@ -782,7 +783,6 @@ protected:
         const float nearPlane = 0.1f;
         const float farPlane = 300.f;
         // Camera target height and distance
-        const float camHeight = 0.5f;
         const float camDist = 0.0001f;
         // Camera Pitch limits
         const float minPitch = radians(-60.0f);
