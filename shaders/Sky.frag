@@ -15,7 +15,6 @@ layout(set = 0, binding = 1) uniform GlobalUniformBufferObject {
 } gubo;
 
 layout(binding = 2) uniform sampler2D texDay;
-layout(binding = 3) uniform sampler2D texNight;
 
 void main() {
         vec2 outUV = vec2(fragUV.x + gubo.time/100, fragUV.y);

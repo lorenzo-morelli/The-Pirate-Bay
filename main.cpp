@@ -82,7 +82,7 @@ protected:
     Model<Vertex> island, sea, spawn, sun, rock, flagPole;
     Model<VertexUV> sky, flag, palmTrunk, palmLeaf;
     DescriptorSet DSIsland, DSSea, DSSpawn, DSSky, DSSun, DSRock, DSFlag, DSFlagPole, DSPalmTrunk, DSPalmLeaf;
-    Texture texSkyDay{}, texSkyNight{}, texBlackFlag{};
+    Texture texSkyDay{}, texBlackFlag{};
 
     TextMaker txt;
 
@@ -262,7 +262,6 @@ protected:
 
         texBlackFlag.init(this, "textures/blackFlag.png");
         texSkyDay.init(this, "textures/skyDay.jpg");
-        texSkyNight.init(this, "textures/skyNight.jpg");
 
         for (int r = 0; r < ROCKS; r++) {
             int xRandom = rand() % (ISLAND_SIZE - 5); //rock size is 5 cubes
@@ -345,8 +344,7 @@ protected:
         DSSky.init(this, &DSLSky, {
                 {0, UNIFORM, sizeof(UniformBufferObject),       nullptr},
                 {1, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr},
-                {2, TEXTURE, 0,                                 &texSkyDay},
-                {3, TEXTURE, 0,                                 &texSkyNight}
+                {2, TEXTURE, 0,                                 &texSkyDay}
         });
 
         DSFlag.init(this, &DSLFlag, {
@@ -411,7 +409,6 @@ protected:
     // You also have to destroy the pipelines
     void localCleanup() override {
         texSkyDay.cleanup();
-        texSkyNight.cleanup();
         texBlackFlag.cleanup();
 
         island.cleanup();
