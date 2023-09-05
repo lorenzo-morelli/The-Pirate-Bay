@@ -742,7 +742,8 @@ protected:
         vec3 velocity = MOVE_SPEED * (m.x * ux + m.z * uz);
 
         // Apply acceleration due to gravity
-        velocity.y -= 98.0f * deltaT;
+        //TODO: 1
+        //velocity.y -= 98.0f * deltaT;
 
         // Update position based on velocity
         vec3 nextPos = Pos + velocity * deltaT;
@@ -761,7 +762,8 @@ protected:
         }
 
         // Jump with gravity
-        if (glfwGetKey(window, GLFW_KEY_SPACE) && Pos.y <= groundLevel + 0.001f) {
+        //TODO 2: && Pos.y <= groundLevel + 0.001f
+        if (glfwGetKey(window, GLFW_KEY_SPACE) ) {
             cout << "Jumping\n";
             // Only allow jumping if the object is very close to the ground (avoid double jumps)
             jumpTime = 3.0f;

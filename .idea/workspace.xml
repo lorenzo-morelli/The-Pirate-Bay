@@ -3,9 +3,9 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
-  <component name="CMakePresetLoader"><![CDATA[{
-  "useNewFormat": true
-}]]></component>
+  <component name="CMakePresetLoader">{
+  &quot;useNewFormat&quot;: true
+}</component>
   <component name="CMakeReloadState">
     <option name="reloaded" value="true" />
   </component>
@@ -20,25 +20,11 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d71da2ba-9f98-413e-966a-80b0beee02d1" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+    <list default="true" id="d71da2ba-9f98-413e-966a-80b0beee02d1" name="Changes" comment="fixed ratio">
       <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/progetto-cg.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/PalmSource.c4d" beforeDir="false" afterPath="$PROJECT_DIR$/models/PalmSource.c4d" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/PalmTrunk.obj" beforeDir="false" afterPath="$PROJECT_DIR$/models/PalmTrunk.obj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/test.obj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/shaders/Sky.frag" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/Sky.frag" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/shaders/SkyFrag.spv" beforeDir="false" afterPath="$PROJECT_DIR$/shaders/SkyFrag.spv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/textures/Safeimagekit-resized-img.png" beforeDir="false" afterPath="$PROJECT_DIR$/textures/Safeimagekit-resized-img.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/textures/cartoon.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/textures/clouds.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/textures/skyDay.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/textures/skyDay.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/textures/skyNight.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/textures/sunny.jpg" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/textures/toon_old.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/primGen.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/primGen.hpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -61,41 +47,45 @@
     <option name="minorVersion" value="1.5" />
   </component>
   <component name="ProjectId" id="2Uw6PTbShqv9NADKAR5Ruc7uS8p" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <OptionsSetting value="false" id="Update" />
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.cidr.known.project.marker": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "cf.first.check.clang-format": "false",
-    "cidr.known.project.marker": "true",
-    "git-widget-placeholder": "master",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
+    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="CMake Application.PROGETTONE">
     <configuration name="compile_shaders" type="BatchConfigurationType" factoryName="Batch" temporary="true">
       <module name="The-Pirate-Bay" />
       <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="WORKING_DIRECTORY" value="C:\Users\batman\Github\The-Pirate-Bay\shaders" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../../../../batman/Github/The-Pirate-Bay/shaders" />
       <option name="PARENT_ENVS" value="true" />
       <option name="SCRIPT_NAME" value="compile_shaders.bat" />
       <option name="PARAMETERS" value="" />
       <method v="2" />
     </configuration>
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+    <configuration name="PROGETTONE" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$PROJECT_DIR$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="PROGETTONE" TARGET_NAME="PROGETTONE" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="PROGETTONE" RUN_TARGET_NAME="PROGETTONE">
       <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration name="PROGETTONE" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$PROJECT_DIR$" PASS_PARENT_ENVS_2="true" PROJECT_NAME="PROGETTONE" TARGET_NAME="PROGETTONE" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="PROGETTONE" RUN_TARGET_NAME="PROGETTONE">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
