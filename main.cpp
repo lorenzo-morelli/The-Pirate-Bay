@@ -706,7 +706,7 @@ protected:
 
     void gamePhysics(float deltaT, vec3 m) {
         static float speed = 1.0f;
-        float maxSpeed = 2.5f;
+        float maxSpeed = 2.0f;
         float minSpeed = 1.0f;
         static float jumpTime = 0.0f;
         float groundLevel;
@@ -718,7 +718,7 @@ protected:
             groundLevel = 0.0f;
 
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) && speed < maxSpeed) speed += 0.07f;
-        else if (speed > minSpeed) speed -= 0.07f;
+        else if (speed > minSpeed) speed -= 0.1f;
 
         // Position
         vec3 ux = rotate(mat4(1.0f), Yaw, vec3(0, 1, 0)) * vec4(1, 0, 0, 1);
