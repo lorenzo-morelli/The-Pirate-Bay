@@ -154,7 +154,7 @@ void Main::createPlaneWithUV(vector<VertexUV> &vDef, vector<uint32_t> &vIdx) {
 
 
 void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &vIdx) {
-    int resolution = 200;
+    float resolution = 200;
     float radius = 100.0f;
 
     // Create a sphere of radius 1 centered at the origin with the given resolution
@@ -162,10 +162,10 @@ void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &
 
     float center = 7.5f;
 
-    for (int i = 0; i <= resolution; i++) {
-        for (int j = 0; j <= resolution; j++) {
-            float phi = i / (float)resolution * 2.0f * M_PI;
-            float theta = j / (float)resolution * M_PI;
+    for (int i = 0; i <= (int) resolution; i++) {
+        for (int j = 0; j <= (int) resolution; j++) {
+            float phi = (float) i / (float) (resolution * 2.0f * M_PI);
+            float theta = (float) j / (float) (resolution * M_PI);
             float x = radius * sinf(theta) * cosf(phi) + center;
             float y = radius * cosf(theta);
             float z = radius * sinf(theta) * sinf(phi) + center;
@@ -175,10 +175,10 @@ void Main::createSphereMesh(std::vector<VertexUV> &vDef, std::vector<uint32_t> &
         }
     }
 
-    for (int i = 0; i < resolution; i++) {
-        for (int j = 0; j < resolution; j++) {
-            int current = i * (resolution + 1) + j;
-            int next = current + resolution + 1;
+    for (int i = 0; i < (int) resolution; i++) {
+        for (int j = 0; j < (int) resolution; j++) {
+            int current = i * ((int) resolution + 1) + j;
+            int next = current + (int) resolution + 1;
 
             // Triangle 1
             vIdx.push_back(current);

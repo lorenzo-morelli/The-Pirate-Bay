@@ -5,10 +5,11 @@
 #include "PerlinNoise.hpp"
 #include <cstdlib>
 
+
 #define INSTANCE_MAX 5000
 #define ISLAND_SIZE 300
 #define ROCKS 100
-#define PALMS 25
+#define PALMS 23
 #define SIZE 0.05f
 
 using namespace glm;
@@ -263,10 +264,10 @@ protected:
         texBlackFlag.init(this, "textures/blackFlag.png");
         texSkyDay.init(this, "textures/skyDay.jpg");
 
-        for (int r = 0; r < ROCKS; r++) {
+        for (auto &pos : positionRocks.pos) {
             int xRandom = rand() % (ISLAND_SIZE - 5); //rock size is 5 cubes
             int zRandom = rand() % (ISLAND_SIZE - 5);
-            positionRocks.pos[r] = vec4(xRandom * size, heightMap[xRandom][zRandom], zRandom * size, 1.0f);
+            pos = vec4((float) xRandom * size, heightMap[xRandom][zRandom], (float) zRandom * size, 1.0f);
             //recompute heightMap
             float heightRock = heightMap[xRandom][zRandom] + 5.0f * size - 0.25f -
                                size; //5.0f*size is rockSize , 0.25 is rock offset
@@ -278,26 +279,22 @@ protected:
             }
         }
 
-        normal_distribution<float> distribution(ISLAND_SIZE / 2, ISLAND_SIZE / 6);
-        default_random_engine generator;
+        normal_distribution<float> distribution(ISLAND_SIZE / 2.0f, ISLAND_SIZE / 9.0f);
+        default_random_engine generator(seed);
         for (auto & pos : positionPalms.pos) {
 
             // Generate random coordinates within a smaller range around the center using Gaussian distribution
-            int xRandom = round(distribution(generator));
-            int zRandom = round(distribution(generator));
-
-            cout << "x: " << xRandom;
-            cout << "; z: " << zRandom;
-
+            int xRandom = (int) round(distribution(generator));
+            int zRandom = (int) round(distribution(generator));
             // Ensure generated coordinates are within island bounds
             xRandom = std::max(2, std::min(ISLAND_SIZE - 1, xRandom)); //2 is size of Palm collider box
             zRandom = std::max(2, std::min(ISLAND_SIZE - 1, zRandom));
 
-            pos = vec4(xRandom * size, heightMap[xRandom][zRandom], zRandom * size, 1.0f);
+            pos = vec4((float) xRandom * size, heightMap[xRandom][zRandom], (float) zRandom * size, 1.0f);
             //recompute heightMap
-            for (int i = 0; i < 2; i++) {
-                for (int j = 0; j < 2; j++) {
-                        heightMap[xRandom - i][zRandom - j] = FLT_MAX;
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    heightMap[xRandom - i][zRandom - j] = FLT_MAX;
                 }
             }
         }
@@ -579,15 +576,6 @@ protected:
         GlobalUniformBufferObject gubo{};
         UniformBufferObject ubo{};
 
-
-//        gubo.spot = spot;
-//        static float spotTime = 0.0f;
-//        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
-//            spotTime = 1.0f;
-//            spot = !spot;
-//        }
-//        spotTime -= 0.1f;
-
         if (glfwGetKey(window, GLFW_KEY_ESCAPE)) glfwSetWindowShouldClose(window, GL_TRUE);
 
         float deltaT;
@@ -605,15 +593,6 @@ protected:
         static float L_time = 0.0f;
         L_time += deltaT;
         gubo.time = L_time/10.0f;
-
-        /*
-        if (glfwGetKey(window, GLFW_KEY_N) == GLFW_PRESS && spotTime <= 0.0f) {
-            spotTime = 1.0f;
-            spot = !spot;
-        }
-        spotTime -= 0.1f;
-        */
-        //TODO: switch to day/night
 
         if (sin(gubo.time) > -0.1) gubo.spot = false;
         else gubo.spot = true;
@@ -710,8 +689,8 @@ protected:
         int gridZ = (int) (z / size);
 
         //grid alignment
-        x = gridX * size;
-        z = gridZ * size;
+        x = (float) gridX * size;
+        z = (float) gridZ * size;
 
 
         //increase terrain height by 1 cube (size)
@@ -726,7 +705,9 @@ protected:
     }
 
     void gamePhysics(float deltaT, vec3 m) {
-        const float MOVE_SPEED = 1.0f;
+        static float speed = 1.0f;
+        float maxSpeed = 2.5f;
+        float minSpeed = 1.0f;
         static float jumpTime = 0.0f;
         float groundLevel;
         int gridX = (int) (Pos.x / size);
@@ -736,10 +717,13 @@ protected:
         else
             groundLevel = 0.0f;
 
+        if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) && speed < maxSpeed) speed += 0.07f;
+        else if (speed > minSpeed) speed -= 0.07f;
+
         // Position
         vec3 ux = rotate(mat4(1.0f), Yaw, vec3(0, 1, 0)) * vec4(1, 0, 0, 1);
         vec3 uz = rotate(mat4(1.0f), Yaw, vec3(0, 1, 0)) * vec4(0, 0, -1, 1);
-        vec3 velocity = MOVE_SPEED * (m.x * ux + m.z * uz);
+        vec3 velocity = speed * (m.x * ux + m.z * uz);
 
         // Apply acceleration due to gravity
         velocity.y -= 98.0f * deltaT;
@@ -749,7 +733,7 @@ protected:
         float nextGroundLevel = heightMap[(int) (nextPos.x / size)][(int) (nextPos.z / size)];
         float diffHeight = abs(nextGroundLevel - groundLevel);
 
-        if(diffHeight<1.0f){ //in this way can't go over high colliders (like palms)
+        if(diffHeight < 0.3f) { //in this way can't go over high colliders (like palms)
             Pos = nextPos;
         }
 
@@ -762,7 +746,6 @@ protected:
 
         // Jump with gravity
         if (glfwGetKey(window, GLFW_KEY_SPACE) && Pos.y <= groundLevel + 0.001f) {
-            cout << "Jumping\n";
             // Only allow jumping if the object is very close to the ground (avoid double jumps)
             jumpTime = 3.0f;
         }
@@ -772,12 +755,11 @@ protected:
             Pos.y += velocity.y * deltaT;
             jumpTime -= 0.1f;
         }
-
     }
 
     void gameLogic(float deltaT, vec3 r) {
         const float FOVy = radians(80.0f);
-        const float nearPlane = 0.1f;
+        const float nearPlane = 0.01f;
         const float farPlane = 300.f;
         // Camera target height and distance
         const float camDist = 0.0001f;
@@ -818,23 +800,24 @@ protected:
         ViewPrj = Prj * View;
     }
 
-    float perlinNoise(float x, float y) const;
-
+    [[nodiscard]] float perlinNoise(float x, float y) const;
     void createGrid(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
-
     static void createCubeMesh(vector<Vertex> &vDef, vector<uint32_t> &vIdx, int offset, float x, float y, float z, float height, float cubeSize);
-
     static void createPlane(vector<Vertex> &vDef, vector<uint32_t> &vIdx);
-
     static void createPlaneWithUV(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
-
     static void createSphereMesh(vector<VertexUV> &vDef, vector<uint32_t> &vIdx);
 
 };
 
 #include "primGen.hpp"
+#include <mmsystem.h>
 
 int main() {
+    try {
+        PlaySound(R"(C:\Users\morel\Desktop\Programs\Uni\music\ciao\song.wav)", nullptr, SND_ASYNC);
+    } catch (...) {
+        cout << "No music" << endl;
+    }
     Main app;
     try {
         app.run();
@@ -842,6 +825,5 @@ int main() {
         cerr << e.what() << endl;
         return EXIT_FAILURE;
     }
-
     return EXIT_SUCCESS;
 }
