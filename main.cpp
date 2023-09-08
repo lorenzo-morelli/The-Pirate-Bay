@@ -117,7 +117,7 @@ protected:
         texturesInPool = 400;
         setsInPool = 400;
 
-        Ar = 4.0f / 3.0f;
+        Ar =  1422.0f / 800.0f;
 
         iconPath = "textures/Safeimagekit-resized-img.png";
 
