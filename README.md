@@ -3,6 +3,8 @@
 Final project for Computer Graphics course at PoliMi.
 Voxel-based pirate game using Vulkan. Sail the high seas, explore a procedurally generated island, and hoist yer flag. 
 
+![](cover.png)
+
 ## Tech Stack
 
 - C++
@@ -33,3 +35,5 @@ Voxel-based pirate game using Vulkan. Sail the high seas, explore a procedurally
 - Multi-texture blending based on noise
 - Vertex shader height mapping
 
+![](daylight.gif)
+![](spotlight.gif)
